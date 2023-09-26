@@ -1,0 +1,16 @@
+#id: fhir.r4.wales.psom.dscn
+canonical: https://fhir.nhs.wales
+#name: FHIR PSOM DSCNs Wales
+fhirVersion: 4.0.1
+# id: fhir <- Only relevant for IG creation
+# name: Fhir <- Only relevant for IG creation
+# status: active <- Only relevant for IG creation
+#status: draft # draft | active | retired | unknown
+version: 0.1.0
+#copyrightYear: 2023+ <- Only relevant for IG creation
+#releaseLabel: ci-build <- Only relevant for IG creation
+#publisher: <- Only relevant for IG creation
+  #name: NHS Wales <- Only relevant for IG creation
+  #url: https://fhir.nhs.wales <- Only relevant for IG creation
+
+FSHOnly: true

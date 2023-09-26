@@ -1,0 +1,9 @@
+*.pyc
+*.lock.json
+.simplifier/
+input/*.xlsx
+output/input/
+output/fsh-generated/
+output/XForm
+output/log_file.txt
+output/release-notes.md
