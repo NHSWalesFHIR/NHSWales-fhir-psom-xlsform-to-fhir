@@ -57,12 +57,12 @@ Make sure to have these modules available in your Python environment before runn
 
 The table below outlines the mapping from DSCN fields and metadata to corresponding XLSForm fields and their eventual representation in FHIR. Note that some string manipulations may be required to generate the proper FHIR element values, which are not detailed here.
 
-| DSCN Field                          | XLSForm Field            | FHIR Element(s)          |
+| DSCN Field                          | XLSForm Field ([tab] column name)          | FHIR Element(s)          |
 | ----------------------------------- | ------------------------ | ------------------------ |
-| Full PROMs Tool name                | [settings] form_title  | `Questionnaire.title`<br>`ValueSet.title`<br>`CodeSystem.title`<br>`ValueSet.description`<br>`CodeSystem.description` |
-| PROMs Tool code                     | [settings] form_id     | Not used                 |
-| PROMs Data Standard Version         | [settings] version     | `Questionnaire.version`<br>`ValueSet.version`<br>`CodeSystem.version` |
-| Short name                          | [settings] tool_short_form | `Questionnaire.id`<br>`Questionnaire.name`<br>`Questionnaire.url`<br>`ValueSet.id`<br>`ValueSet.name`<br>`ValueSet.url`<br>`CodeSystem.id`<br>`CodeSystem.name`<br>`CodeSystem.url`<br>Used for File naming |
+| Full PROMs Tool name (e.g., Your General Health Questionnaire)                | [settings] form_title  | `Questionnaire.title`<br>`ValueSet.title`<br>`CodeSystem.title`<br>`ValueSet.description`<br>`CodeSystem.description` |
+| PROMs Tool code (e.g., E5D1)                        | [settings] form_id     | Not used                 |
+| PROMs Data Standard Version (e.g., 2022014)            | [settings] version     | `Questionnaire.version`<br>`ValueSet.version`<br>`CodeSystem.version` |
+| Short name  (e.g., EQ5D5L)                            | [settings] tool_short_form | `Questionnaire.id`<br>`Questionnaire.name`<br>`Questionnaire.url`<br>`ValueSet.id`<br>`ValueSet.name`<br>`ValueSet.url`<br>`CodeSystem.id`<br>`CodeSystem.name`<br>`CodeSystem.url`<br>Used for File naming |
 | Format                              | [survey] format        | `Questionnaire.item.extension(url = http://hl7.org/fhir/StructureDefinition/entryFormat)` |
 | -                                   | [survey] sensitive     | `Questionnaire.item.extension(url = http://hl7.org/fhir/uv/security-label-ds4p/StructureDefinition/extension-inline-sec-label)` |
 | Data Item Name                      | [choices] list_name    | `Questionnaire.item.answerValueSet`<br>`ValueSet.id`<br>`ValueSet.url`<br>`ValueSet.name`<br>`ValueSet.title`<br>`CodeSystem.id`<br>`CodeSystem.url`<br>`CodeSystem.name`<br>`CodeSystem.title` |
