@@ -23,8 +23,11 @@ It supports the conversion of the following XLSForm types:
 * integer
 * begin group
 
+See the mapping table below to know what which DSCN fields should applied to the XLSFrom and how the are mapped to FHIR.
+
 ## How to Use
 To use the script, make sure you have all the required dependencies (see below) and that the variables in `main.py` for the `input_folder` and `output_folder` are correct paths that are used on your local machine. Then, simply run the script. It will process all XLSForm files in the input directory and write the resulting FSH data to the output directory, while also logging its operation.
+
 
 ## File Descriptions
 - `main.py`: Entry point of the application. Initiates the conversion process.
@@ -50,3 +53,47 @@ This script depends Python 3.x and on the following Python modules:
 
 Make sure to have these modules available in your Python environment before running the script.
 
+## Mapping Table: DSCN Fields to XLSForm and FHIR
+
+The table below outlines the mapping from DSCN fields and metadata to corresponding XLSForm fields and their eventual representation in FHIR. Note that some string manipulations may be required to generate the proper FHIR element values, which are not detailed here.
+
+| DSCN Field                          | XLSForm Field         | FHIR Element(s)          |
+| ----------------------------------- | --------------------- | ------------------------ |
+| Full PROMs Tool name                | [settings] form_title  | - `Questionnaire.title`  |
+|                                     |                       | - `ValueSet.title`       |
+|                                     |                       | - `CodeSystem.title`     |
+|                                     |                       | - `ValueSet.description` |
+|                                     |                       | - `CodeSystem.description` |
+| PROMs Tool code                     | [settings] form_id    | Not used                 |
+| PROMs Data Standard Version         | [settings] version    | - `Questionnaire.version`|
+|                                     |                       | - `ValueSet.version`     |
+|                                     |                       | - `CodeSystem.version`   |
+| Short name                          | [settings] tool_short_form | - `Questionnaire.id`  |
+|                                     |                       | - `Questionnaire.name`   |
+|                                     |                       | - `Questionnaire.url`    |
+|                                     |                       | - `ValueSet.id`          |
+|                                     |                       | - `ValueSet.name`        |
+|                                     |                       | - `ValueSet.url`         |
+|                                     |                       | - `CodeSystem.id`        |
+|                                     |                       | - `CodeSystem.name`      |
+|                                     |                       | - `CodeSystem.url`       |
+|                                     |                       | Used for File naming     |
+| Format                              | [survey] format       | `Questionnaire.item.extension(url = http://hl7.org/fhir/StructureDefinition/entryFormat)` |
+| -                                   | [survey] sensitive    | `Questionnaire.item.extension(url = http://hl7.org/fhir/uv/security-label-ds4p/StructureDefinition/extension-inline-sec-label)` |
+| Data Item Name                      | [choices] list_name   | - `Questionnaire.item.answerValueSet` |
+|                                     |                       | - `ValueSet.id`          |
+|                                     |                       | - `ValueSet.url`         |
+|                                     |                       | - `ValueSet.name`        |
+|                                     |                       | - `ValueSet.title`       |
+|                                     |                       | - `CodeSystem.id`        |
+|                                     |                       | - `CodeSystem.url`       |
+|                                     |                       | - `CodeSystem.name`      |
+|                                     |                       | - `CodeSystem.title`     |
+| Value Set codes                     | [choices] name        | - `ValueSet.include.concept.code` |
+|                                     |                       | - `CodeSystem.concept.code` |
+| Value Set label                     | [choices] label       | - `ValueSet.include.concept.display` |
+|                                     |                       | - `CodeSystem.concept.display` |
+| -                                   | [choices] valid_from  | not implemented          |
+| -                                   | [choices] valid_to    | not implemented          |
+
+This extended mapping table serves as a comprehensive guide for transforming DSCN metadata into FHIR-compatible elements through an intermediary XLSForm.
