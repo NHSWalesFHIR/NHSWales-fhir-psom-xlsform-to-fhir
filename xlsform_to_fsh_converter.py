@@ -134,7 +134,7 @@ def create_fsh_questionnaire_terminology(df_choices: pd.DataFrame, short_name: s
                     f'* ^name = "DataStandardsWalesPROMS{cs_name}"',
                     f'* ^version = "{version}"',
                     f'* ^status = #draft',
-                    f'* ^copyright = "© 2023 NHS Wales. The information provided in this CodeSystem must not be used to re-produce a PROM questionnaire form, this would result in a breach of copyright. The user must ensure they comply with the terms of the license set by the license holder for any PROM questionnaires used"',
+                    f'* ^copyright = "© 2023 NHS Wales. The information provided in the CodeSystem is part of a licensed PROM questionnaire form. The user must ensure they comply with the terms of the license set by the license holder for any PROM questionnaires used."',
                     f'* ^publisher = "NHS Wales"',
                     f'* ^caseSensitive = true',
                     '',
@@ -155,7 +155,7 @@ def create_fsh_questionnaire_terminology(df_choices: pd.DataFrame, short_name: s
                     f'* ^name = "DataStandardsWalesPROMS{vs_name}"',
                     f'* ^version = "{version}"',
                     f'* ^status = #draft',
-                    f'* ^copyright = "© 2023 NHS Wales. The information provided in this ValueSet must not be used to re-produce a PROM questionnaire form, this would result in a breach of copyright. The user must ensure they comply with the terms of the license set by the license holder for any PROM questionnaires used."',
+                    f'* ^copyright = "© 2023 NHS Wales. The information provided in the ValueSet is part of a licensed PROM questionnaire form. The user must ensure they comply with the terms of the license set by the license holder for any PROM questionnaires used."',
                     f'* ^publisher = "NHS Wales"',
                     '',
                     ] 
