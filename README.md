@@ -57,43 +57,18 @@ Make sure to have these modules available in your Python environment before runn
 
 The table below outlines the mapping from DSCN fields and metadata to corresponding XLSForm fields and their eventual representation in FHIR. Note that some string manipulations may be required to generate the proper FHIR element values, which are not detailed here.
 
-| DSCN Field                          | XLSForm Field         | FHIR Element(s)          |
-| ----------------------------------- | --------------------- | ------------------------ |
-| Full PROMs Tool name                | [settings] form_title  | - `Questionnaire.title`  |
-|                                     |                       | - `ValueSet.title`       |
-|                                     |                       | - `CodeSystem.title`     |
-|                                     |                       | - `ValueSet.description` |
-|                                     |                       | - `CodeSystem.description` |
-| PROMs Tool code                     | [settings] form_id    | Not used                 |
-| PROMs Data Standard Version         | [settings] version    | - `Questionnaire.version`|
-|                                     |                       | - `ValueSet.version`     |
-|                                     |                       | - `CodeSystem.version`   |
-| Short name                          | [settings] tool_short_form | - `Questionnaire.id`  |
-|                                     |                       | - `Questionnaire.name`   |
-|                                     |                       | - `Questionnaire.url`    |
-|                                     |                       | - `ValueSet.id`          |
-|                                     |                       | - `ValueSet.name`        |
-|                                     |                       | - `ValueSet.url`         |
-|                                     |                       | - `CodeSystem.id`        |
-|                                     |                       | - `CodeSystem.name`      |
-|                                     |                       | - `CodeSystem.url`       |
-|                                     |                       | Used for File naming     |
-| Format                              | [survey] format       | `Questionnaire.item.extension(url = http://hl7.org/fhir/StructureDefinition/entryFormat)` |
-| -                                   | [survey] sensitive    | `Questionnaire.item.extension(url = http://hl7.org/fhir/uv/security-label-ds4p/StructureDefinition/extension-inline-sec-label)` |
-| Data Item Name                      | [choices] list_name   | - `Questionnaire.item.answerValueSet` |
-|                                     |                       | - `ValueSet.id`          |
-|                                     |                       | - `ValueSet.url`         |
-|                                     |                       | - `ValueSet.name`        |
-|                                     |                       | - `ValueSet.title`       |
-|                                     |                       | - `CodeSystem.id`        |
-|                                     |                       | - `CodeSystem.url`       |
-|                                     |                       | - `CodeSystem.name`      |
-|                                     |                       | - `CodeSystem.title`     |
-| Value Set codes                     | [choices] name        | - `ValueSet.include.concept.code` |
-|                                     |                       | - `CodeSystem.concept.code` |
-| Value Set label                     | [choices] label       | - `ValueSet.include.concept.display` |
-|                                     |                       | - `CodeSystem.concept.display` |
-| -                                   | [choices] valid_from  | not implemented          |
-| -                                   | [choices] valid_to    | not implemented          |
+| DSCN Field                          | XLSForm Field            | FHIR Element(s)          |
+| ----------------------------------- | ------------------------ | ------------------------ |
+| Full PROMs Tool name                | [settings] form_title  | `Questionnaire.title`<br>`ValueSet.title`<br>`CodeSystem.title`<br>`ValueSet.description`<br>`CodeSystem.description` |
+| PROMs Tool code                     | [settings] form_id     | Not used                 |
+| PROMs Data Standard Version         | [settings] version     | `Questionnaire.version`<br>`ValueSet.version`<br>`CodeSystem.version` |
+| Short name                          | [settings] tool_short_form | `Questionnaire.id`<br>`Questionnaire.name`<br>`Questionnaire.url`<br>`ValueSet.id`<br>`ValueSet.name`<br>`ValueSet.url`<br>`CodeSystem.id`<br>`CodeSystem.name`<br>`CodeSystem.url`<br>Used for File naming |
+| Format                              | [survey] format        | `Questionnaire.item.extension(url = http://hl7.org/fhir/StructureDefinition/entryFormat)` |
+| -                                   | [survey] sensitive     | `Questionnaire.item.extension(url = http://hl7.org/fhir/uv/security-label-ds4p/StructureDefinition/extension-inline-sec-label)` |
+| Data Item Name                      | [choices] list_name    | `Questionnaire.item.answerValueSet`<br>`ValueSet.id`<br>`ValueSet.url`<br>`ValueSet.name`<br>`ValueSet.title`<br>`CodeSystem.id`<br>`CodeSystem.url`<br>`CodeSystem.name`<br>`CodeSystem.title` |
+| Value Set codes                      | [choices] name         | `ValueSet.include.concept.code`<br>`CodeSystem.concept.code` |
+| Value Set label                      | [choices] label        | `ValueSet.include.concept.display`<br>`CodeSystem.concept.display` |
+| -                                   | [choices] valid_from   | not implemented          |
+| -                                   | [choices] valid_to     | not implemented          |
 
 This extended mapping table serves as a comprehensive guide for transforming DSCN metadata into FHIR-compatible elements through an intermediary XLSForm.
