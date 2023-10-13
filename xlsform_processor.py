@@ -109,7 +109,7 @@ def convert_to_xform_and_validate(input_folder: str, output_folder: str) -> None
     
     for xls_file in tqdm(xls_files):
         # Create output file path by replacing .xlsx with .xml and changing the directory
-        output_file = output_folder + "XForm/" + xls_file.split('\\')[-1].replace('.xlsx', '.xml')
+        output_file = output_folder + "xform/" + xls_file.split('\\')[-1].replace('.xlsx', '.xml')
         convert_to_xform(xls_file, output_file)
 
     logging.info('XLSForms to XForm conversion and validation done!')
