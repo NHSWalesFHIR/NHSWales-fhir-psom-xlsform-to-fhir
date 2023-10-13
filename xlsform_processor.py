@@ -96,11 +96,11 @@ def convert_to_xform_and_validate(input_folder: str, output_folder: str) -> None
     # Get list of all .xlsx files in the input folder
     xls_files = glob.glob(input_folder + "*.xlsx")
 
-    if not os.path.exists(f"{output_folder}XForm"):
-        os.makedirs(f"{output_folder}XForm")
+    if not os.path.exists(f"{output_folder}xform"):
+        os.makedirs(f"{output_folder}xform")
         
-        print(f"Created {output_folder}XForm folder")
-        logging.info(f"Created {output_folder}XForm folder")
+        print(f"Created {output_folder}xform folder")
+        logging.info(f"Created {output_folder}xform folder")
     
     print('Validating XSLForms by converting to XForms...')
     logging.info('Validating XSLForms by converting to XForms...')
