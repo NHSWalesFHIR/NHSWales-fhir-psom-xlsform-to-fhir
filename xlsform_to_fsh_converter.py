@@ -122,16 +122,16 @@ def create_fsh_questionnaire_terminology(df_choices: pd.DataFrame, short_name: s
     for list_name in df_choices['list_name'].unique():
         proper_list_name = su.convert_to_camel_case(list_name)
         cs_name = (short_name + proper_list_name + 'CS').replace('-','_')
-        cs_id = su.make_fhir_compliant((short_name + proper_list_name + 'CS'))
+        cs_id = su.make_fhir_compliant((short_name + '-' + proper_list_name + '-' + 'CS'))
         vs_name = (short_name + proper_list_name + 'VS').replace('-','_')
-        vs_id = su.make_fhir_compliant((short_name + proper_list_name + 'VS'))
+        vs_id = su.make_fhir_compliant((short_name + '-' + proper_list_name + '-' + 'VS'))
 
         lines_cs = [
                     f'CodeSystem: {cs_id}',
                     f'Id: {cs_id}',
                     f'Title: "{short_name} Questionnaire - {proper_list_name} CodeSystem"',
                     f'Description: "Codes for the question \'{proper_list_name}\' in PSOM Questionnaire \'{title}\'."',
-                    f'* ^name = "DataStandardsWalesPROMS{cs_name}"',
+                    f'* ^name = "{cs_name}"',
                     f'* ^version = "{version}"',
                     f'* ^status = #draft',
                     f'* ^copyright = "© 2023 NHS Wales. The information provided in the CodeSystem is part of a licensed PROM questionnaire form. The user must ensure they comply with the terms of the license set by the license holder for any PROM questionnaires used."',
@@ -152,7 +152,7 @@ def create_fsh_questionnaire_terminology(df_choices: pd.DataFrame, short_name: s
                     f'Id: {vs_id}',
                     f'Title: "{short_name} Questionnaire - {proper_list_name} ValueSet"',
                     f'Description: "Applicable codes for the question \'{proper_list_name}\' in PSOM Questionnaire \'{title}\'."',
-                    f'* ^name = "DataStandardsWalesPROMS{vs_name}"',
+                    f'* ^name = "{vs_name}"',
                     f'* ^version = "{version}"',
                     f'* ^status = #draft',
                     f'* ^copyright = "© 2023 NHS Wales. The information provided in the ValueSet is part of a licensed PROM questionnaire form. The user must ensure they comply with the terms of the license set by the license holder for any PROM questionnaires used."',
@@ -172,14 +172,14 @@ def create_fsh_questionnaire_terminology(df_choices: pd.DataFrame, short_name: s
 def create_fsh_question_reference_codesystem(df_survey: pd.DataFrame, short_name: str, short_id: str, version: str, title: str) -> list: 
     lines = []
     cs_name = (short_name + 'QuestionReferenceCS').replace('-', '_')
-    cs_id = su.make_fhir_compliant((short_name + 'QuestionReferenceCS'))
+    cs_id = su.make_fhir_compliant((short_name + '-' + 'QuestionReferenceCS'))
 
     lines_cs = [
                 f'CodeSystem: {cs_id}',
                 f'Id: {cs_id}',
                 f'Title: "{short_name} Question Reference CodeSystem"',
                 f'Description: "Question Reference codes for the questions in PSOM Questionnaire \'{title}\'."',
-                f'* ^name = "DataStandardsWalesPROMS{cs_name}"',
+                f'* ^name = "{cs_name}"',
                 f'* ^version = "{version}"',
                 f'* ^status = #draft',
                 f'* ^copyright = "© 2023 NHS Wales. The information provided in this CodeSystem must not be used to re-produce a PROM questionnaire form, this would result in a breach of copyright. The user must ensure they comply with the terms of the license set by the license holder for any PROM questionnaires used."',
