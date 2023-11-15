@@ -58,10 +58,26 @@ def create_processed_xlsforms_md_overview(processed_xlsforms_md_entries: list) -
 
 
 def load_xlsform_data(input_folder: str, file_name: str):
+    """
+    Loads XLSForm data from a specified Excel file located in the given input folder.
+    
+    This function reads the 'survey', 'choices', and 'settings' sheets from the specified 
+    Excel file. Each cell in these sheets is processed to strip leading and trailing whitespace
+    if the cell contains a string. Other data types in the cells are left unchanged.
+
+    Parameters:
+    - input_folder (str): The folder path where the Excel file is located.
+    - file_name (str): The name of the Excel file to be loaded.
+
+    Returns:
+    tuple: A tuple containing three pandas DataFrames corresponding to the 'survey', 
+           'choices', and 'settings' sheets of the Excel file, respectively.
+    """
+
     xls = pd.read_excel(os.path.join(input_folder, file_name), sheet_name=None)
-    df_survey = xls['survey'].applymap(lambda x: x.strip() if isinstance(x, str) else x)
-    df_choices = xls['choices'].applymap(lambda x: x.strip() if isinstance(x, str) else x)
-    df_settings = xls['settings'].applymap(lambda x: x.strip() if isinstance(x, str) else x)
+    df_survey = xls['survey'].apply(lambda col: col.map(lambda x: x.strip() if isinstance(x, str) else x))
+    df_choices = xls['choices'].apply(lambda col: col.map(lambda x: x.strip() if isinstance(x, str) else x))
+    df_settings = xls['settings'].apply(lambda col: col.map(lambda x: x.strip() if isinstance(x, str) else x))
 
     return df_survey, df_choices, df_settings
 
