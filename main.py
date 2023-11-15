@@ -21,7 +21,14 @@ processed_xlsforms = []
 processed_xlsforms_md_overview = []
 fsh_lines_list = []
 
-print('Step 0 - Setup and validatie')
+print('****************************************************')
+print('*                                                  *')
+print('* Welcome to the XLSForm to FHIR Conversion Tool! *')
+print('*                                                  *')
+print('****************************************************')
+user_choice = xls.conversion_context()
+
+print('Step 0 - Setup and validation')
 setup.delete_output_folder_contents(output_folder + questionnaire_folder)
 setup.delete_output_folder_contents(output_folder + terminology_folder)
 setup.delete_output_folder_contents(output_folder + 'XForm')
@@ -29,10 +36,10 @@ setup.initiate_logging(output_folder)
 xls.convert_to_xform_and_validate(input_folder, output_folder)
 
 print('Step 1 - Parse XLSForms')
-processed_xlsforms, processed_xlsforms_md_overview = xls.process_xlsform_files(input_folder)
+processed_xlsforms, processed_xlsforms_md_overview = xls.process_xlsform_files(input_folder, user_choice)
 
 print('Step 2 - Convert to FSH lines')
-fsh_lines_list = fsh.convert_to_fsh(processed_xlsforms)
+fsh_lines_list = fsh.convert_to_fsh(processed_xlsforms,user_choice)
 
 print('Step 3 - Writing to FSH files')
 fw.write_fsh_files(fsh_lines_list, output_folder, terminology_folder, questionnaire_folder)
@@ -49,4 +56,3 @@ except subprocess.CalledProcessError as e:
 
 print('Done! Thank you for using XLSForm to FHIR today.')
 logging.info('Done! Thank you for using XLSForm to FSH to FHIR today.')
-
