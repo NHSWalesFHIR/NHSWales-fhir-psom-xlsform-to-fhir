@@ -6,18 +6,7 @@ from pyxform import xls2xform
 from pyxform.validators import odk_validate
 import string_util as su
 
-def conversion_context():
-    while True:
-        user_choice = input('Would you like to convert a DSCN or LPDS? (dscn/lpds): ').lower()
-
-        if user_choice == 'lpds':
-            return 'lpds'
-        elif user_choice == 'dscn':
-            return 'dscn'
-        else:
-            print('Invalid choice. Please enter "yes" or "no".')
-
-def process_xlsform_files(input_folder, user_choice):
+def process_xlsform_files(input_folder, lpds_healthboard_abbreviation_dict):
     processed_xlsforms = []
     processed_xlsforms_md_entries = []
     with tqdm(total=len([f for f in os.listdir(input_folder) if f.endswith('.xlsx')]), desc="Processing XLSForm Excel files", dynamic_ncols=True) as pbar:
@@ -25,132 +14,159 @@ def process_xlsform_files(input_folder, user_choice):
             if file_name.endswith('.xlsx'):
                 logging.info(f'Processing {file_name}...')
                 try:
-                    if user_choice == 'lpds':
-                        print(' Parsing of the XLSForm following the LPDS settings.')
-                        df_survey, df_choices, short_name, short_id, version, title, healthboard_abbreviation = process_lpds_xlsform(input_folder, file_name)
-                        processed_xlsforms.append((file_name, df_survey, df_choices, short_name, short_id, version, title, healthboard_abbreviation))
-                        processed_xlsforms_md_entries.append({'short_name': short_name, 'short_id': short_id, 'version': version, 'healthboard_abbreviation': healthboard_abbreviation})
-                        pbar.update(1)
-                    elif user_choice == 'dscn':
-                        print(' Parsing of the XLSForm following the DSCN settings.')
-                        df_survey, df_choices, short_name, short_id, version, title = process_dscn_xlsform(input_folder, file_name)
-                        processed_xlsforms.append((file_name, df_survey, df_choices, short_name, short_id, version, title))
-                        processed_xlsforms_md_entries.append({'short_name': short_name, 'short_id': short_id, 'version': version})
+                        df_survey, df_choices, short_name, short_id, version, title, lpds_healthboard_abbreviation = process_xlsform(input_folder, file_name, lpds_healthboard_abbreviation_dict)
+                        processed_xlsforms.append((file_name, df_survey, df_choices, short_name, short_id, version, title, lpds_healthboard_abbreviation))
+                        
+                        md_entry = {'short_name': short_name, 'short_id': short_id, 'version': version, 'title': title}
+                        if lpds_healthboard_abbreviation is not None:
+                            md_entry['lpds_healthboard_abbreviation'] = lpds_healthboard_abbreviation
+                        processed_xlsforms_md_entries.append(md_entry)
+
                         pbar.update(1)
                 except Exception as e:
                     logging.error(f'Error processing {file_name}: {str(e)}')
                     logging.error(traceback.format_exc())     
                 logging.info(f'Processed {file_name}...')            
-    return processed_xlsforms, processed_xlsforms_md_entries
+    
+    processed_xlsforms_md_overview = create_processed_xlsforms_md_overview(processed_xlsforms_md_entries)
+    print(processed_xlsforms_md_overview)
 
+    return processed_xlsforms, processed_xlsforms_md_overview
 
-def process_lpds_xlsform(input_folder: str, file_name: str):
-    df_survey, df_choices, df_settings = load_xlsform_data(input_folder, file_name)
-
-    try:
-        version, short_name, title, short_id, hb_abbrev = parsing_version(df_settings, file_name), parsing_tool_name(df_settings, file_name), parsing_form_title(df_settings, file_name), parsing_form_id(df_settings, file_name), parsing_hb_abbrev(df_settings, file_name)
-    except (ValueError, TypeError) as e:
-        logging.exception(f'Error processing {file_name}: {str(e)}')
-        raise
-
-    return df_survey, df_choices, short_name, short_id, version, title, hb_abbrev
-
-
-def process_dscn_xlsform(input_folder: str, file_name: str):
-    df_survey, df_choices, df_settings = load_xlsform_data(input_folder, file_name)
-
-    try:
-        version, short_name, title, short_id = parsing_version(df_settings, file_name), parsing_tool_name(df_settings, file_name), parsing_form_title(df_settings, file_name), parsing_form_id(df_settings, file_name)
-    except (ValueError, TypeError) as e:
-        logging.exception(f'Error processing {file_name}: {str(e)}')
-        raise
-
-    return df_survey, df_choices, short_name, short_id, version, title
+def create_processed_xlsforms_md_overview(processed_xlsforms_md_entries: list) -> str:
+    processed_lpds = sorted(
+        [entry for entry in processed_xlsforms_md_entries if 'lpds_healthboard_abbreviation' in entry],
+        key=lambda x: (x['lpds_healthboard_abbreviation'], x['short_name'])
+    )
+    processed_dscn = sorted(
+        [entry for entry in processed_xlsforms_md_entries if 'lpds_healthboard_abbreviation' not in entry],
+        key=lambda x: x['short_name']
+    )
+    number_of_processed_lpds = len(processed_lpds)
+    number_of_processed_dscn = len(processed_dscn)
+    
+    md_lines = "# XLSForm PROMs to FHIR transformation results\n\n"
+    md_lines += f"## Processed {number_of_processed_dscn} DSCN XLSForms\n"
+    for entry in processed_dscn:
+        md_lines += f"- **{entry['short_name']}** ({entry['short_id']}) - {entry['version']}\n"
+    
+    md_lines += f"\n## Processed {number_of_processed_lpds} LPDS XLSForms\n"
+    for entry in processed_lpds:
+        md_lines += f"{entry['lpds_healthboard_abbreviation']}: **{entry['short_name']}** ({entry['short_id']}) - {entry['version']}\n"
+    
+    return md_lines
 
 
 def load_xlsform_data(input_folder: str, file_name: str):
-    df_survey = pd.read_excel(os.path.join(input_folder, file_name), header=0, sheet_name='survey').map(lambda x: x.strip() if isinstance(x, str) else x)
-    df_choices = pd.read_excel(os.path.join(input_folder, file_name), header=0, sheet_name='choices').map(lambda x: x.strip() if isinstance(x, str) else x)
-    df_settings = pd.read_excel(os.path.join(input_folder, file_name), header=0, sheet_name='settings').map(lambda x: x.strip() if isinstance(x, str) else x)
+    xls = pd.read_excel(os.path.join(input_folder, file_name), sheet_name=None)
+    df_survey = xls['survey'].applymap(lambda x: x.strip() if isinstance(x, str) else x)
+    df_choices = xls['choices'].applymap(lambda x: x.strip() if isinstance(x, str) else x)
+    df_settings = xls['settings'].applymap(lambda x: x.strip() if isinstance(x, str) else x)
 
     return df_survey, df_choices, df_settings
 
+def process_xlsform(input_folder: str, file_name: str, lpds_healthboard_abbreviation_dict: dict):
+    df_survey, df_choices, df_settings = load_xlsform_data(input_folder, file_name)
+
+    try:
+        version, short_name, title, short_id, lpds_healthboard_abbreviation = parsing_version(df_settings, file_name), parsing_tool_short_form(df_settings, file_name), parsing_form_title(df_settings, file_name), parsing_form_id(df_settings, file_name), parsing_lpds_healthboard_abbreviation(df_settings, file_name, lpds_healthboard_abbreviation_dict)
+    except (ValueError, TypeError) as e:
+        logging.exception(f'Error processing {file_name}: {str(e)}')
+        raise
+
+    return df_survey, df_choices, short_name, short_id, version, title, lpds_healthboard_abbreviation
 
 def parsing_version(df_settings, file_name):
     try:
         version_val = df_settings["version"].values[0]
         if version_val is None:
-            raise ValueError('XLSForm setting version is missing.')
+            raise ValueError('XLSForm settings version is missing.')
         elif not np.issubdtype(type(version_val), np.number) or version_val < 0:
-            raise TypeError('XLSForm setting version is not a non-negative number.')
+            raise TypeError('XLSForm settings version is not a non-negative number.')
 
         version_val = int(version_val) if version_val.is_integer() else version_val
         return str(version_val)
+    
     except (ValueError, TypeError) as e:
         logging.exception(f'Error parsing version in {file_name}: {str(e)}')
         raise
+    
 
-
-def parsing_tool_name(df_settings, file_name):
+def parsing_tool_short_form(df_settings, file_name):
     try:
         tool_name = df_settings['tool_short_form'].values[0]
         if tool_name is None:
-            raise ValueError('XLSForm setting tool_short_name is missing.')
+            raise ValueError('XLSForm settings tool_short_name is missing.')
         elif not isinstance(tool_name, str):
-            raise TypeError('XLSForm setting tool_short_name is not a string.')
+            raise TypeError('XLSForm settings tool_short_name is not a string.')
 
         short_name = tool_name.replace(" ", "-").replace("_", "-")
         if not su.validate_string_FHIR_id(short_name):
-            logging.warning(f'{file_name}: XLSForm setting tool_short_name cannot be used for FHIR ids.')
-        return short_name
+            logging.warning(f'{file_name}: XLSForm settings tool_short_name cannot be used for FHIR ids.')
+        return str(short_name)
+    
     except (ValueError, TypeError) as e:
         logging.exception(f'Error parsing tool_name in {file_name}: {str(e)}')
         raise
-
 
 def parsing_form_title(df_settings, file_name):
     try:
         form_title = df_settings['form_title'].values[0]
         if form_title is None:
-            raise ValueError('XLSForm setting form_title is missing.')
+            raise ValueError('XLSForm settings form_title is missing.')
         elif not isinstance(form_title, str):
-            raise TypeError('XLSForm setting form_title is not a string.')
+            raise TypeError('XLSForm settings form_title is not a string.')
 
-        return form_title
+        return str(form_title)
     except (ValueError, TypeError) as e:
         logging.exception(f'Error parsing form_title in {file_name}: {str(e)}')
         raise
-
 
 def parsing_form_id(df_settings, file_name):
     try:
         form_id = df_settings['form_id'].values[0]
         if form_id is None:
-            raise ValueError('XLSForm setting form_id is missing.')
+            raise ValueError('XLSForm settings form_id is missing.')
         elif not isinstance(form_id, str):
-            raise TypeError('XLSForm setting form_id is not a string.')
+            raise TypeError('XLSForm settings form_id is not a string.')
 
-        return form_id.replace(" ", "-").replace("_", "-")
+        return str(form_id.replace(" ", "-").replace("_", "-"))
     except (ValueError, TypeError) as e:
         logging.exception(f'Error parsing form_id in {file_name}: {str(e)}')
         raise
 
+def parsing_lpds_healthboard_abbreviation(df_settings, file_name, lpds_healthboard_abbreviation_dict):
+    lpds_healthboard_abbreviation = None
 
-def parsing_hb_abbrev(df_settings, file_name):
-    try:
-        hb_abbrev = df_settings['healthboard_abbreviation'].values[0]
-        if hb_abbrev is None:
-            raise ValueError('XLSForm setting hb_abbrev is missing.')
-        elif not isinstance(hb_abbrev, str):
-            raise TypeError('XLSForm setting hb_abbrev is not a string.')
+    if 'lpds_healthboard_abbreviation' in df_settings:
+        lpds_healthboard_abbreviation = df_settings['lpds_healthboard_abbreviation'].values[0]
 
-        hb_abbrev = hb_abbrev.replace(" ", "-").replace("_", "-")
-        if not su.validate_string_FHIR_id(hb_abbrev):
-            logging.warning(f'{file_name}: XLSForm setting hb_abbrev cannot be used for FHIR ids.')
-        return hb_abbrev
-    except (ValueError, TypeError) as e:
-        logging.exception(f'Error parsing hb_abbrev in {file_name}: {str(e)}')
-        raise
+        # Convert to string if not None
+        if lpds_healthboard_abbreviation is not None:
+            lpds_healthboard_abbreviation = str(lpds_healthboard_abbreviation)
+
+            if lpds_healthboard_abbreviation.strip() == "":
+                logging.error(f'{file_name}: lpds_healthboard_abbreviation column is provided but the value is empty.')
+                raise ValueError('lpds_healthboard_abbreviation column is provided but the value is empty.')
+            
+            if not lpds_healthboard_abbreviation.isalpha():
+                logging.error(f'{file_name}: XLSForm settings lpds_healthboard_abbreviation is not a string.')
+                raise TypeError('XLSForm settings lpds_healthboard_abbreviation is not a string.')
+
+            valid_keys = ", ".join(lpds_healthboard_abbreviation_dict.keys())
+            if lpds_healthboard_abbreviation not in lpds_healthboard_abbreviation_dict:
+                logging.error(f"{file_name}: lpds_healthboard_abbreviation '{lpds_healthboard_abbreviation}' is not a valid abbreviation. Valid abbreviation are: {valid_keys}.")
+            
+            if not su.validate_string_FHIR_id(lpds_healthboard_abbreviation):
+                logging.warning(f'{file_name}: XLSForm settings lpds_healthboard_abbreviation cannot be used for FHIR ids. Making FHIR id compliant')
+                lpds_healthboard_abbreviation = su.make_fhir_compliant(lpds_healthboard_abbreviation)
+            
+            lpds_healthboard_abbreviation = lpds_healthboard_abbreviation.replace(" ", "-").replace("_", "-")
+
+    return lpds_healthboard_abbreviation
+
+
+
 
 def convert_to_xform_and_validate(input_folder: str, output_folder: str) -> None:
     logging.info('Checking input XLSForms by converting them to XForm using pyxfrom libary...')

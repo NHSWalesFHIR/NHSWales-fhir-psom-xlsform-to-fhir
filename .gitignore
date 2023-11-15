@@ -6,4 +6,5 @@ output/input/
 output/fsh-generated/
 output/XForm
 output/log_file.txt
-output/release-notes.md
+output/*
+
