@@ -20,9 +20,31 @@ def initiate_logging(output_folder):
     for handler in logging.root.handlers[:]:
         logging.root.removeHandler(handler)
 
-    # Configure logging to write only to the file
-    logging.basicConfig(filename=log_file, level=logging.INFO, filemode='w', format='%(asctime)s ; %(levelname)s; %(message)s')
-    logging.info('Logging initiated')  # Test message
+    # Create a logger and set the level to DEBUG
+    logger = logging.getLogger()
+    logger.setLevel(logging.DEBUG)
+    
+    # Create a file handler and set level to debug
+    file_handler = logging.FileHandler(log_file)
+    file_handler.setLevel(logging.DEBUG)  # Log everything to file
+    
+    # Create a stream handler and set level to error
+    stream_handler = logging.StreamHandler()
+    stream_handler.setLevel(logging.ERROR)  # Only log errors to console
+    
+    # Create formatter
+    formatter = logging.Formatter('%(asctime)s ; %(levelname)s; %(message)s')
+    
+    # Add formatter to handlers
+    file_handler.setFormatter(formatter)
+    stream_handler.setFormatter(formatter)
+    
+    # Add handlers to logger
+    logger.addHandler(file_handler)
+    logger.addHandler(stream_handler)
+
+    # Test message
+    logger.info('Logging initiated')
 
 def delete_output_folder_contents(output_folder):
     """ 
