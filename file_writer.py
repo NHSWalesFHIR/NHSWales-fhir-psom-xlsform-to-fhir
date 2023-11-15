@@ -2,24 +2,50 @@ from pathlib import Path
 from tqdm import tqdm
 import logging
 
-def write_fsh_files(fsh_lines_list, output_folder, terminology_folder, questionnaire_folder):
+def write_fsh_files(fsh_lines_list, output_folder, lpds_healthboard_abbreviation_dict):
     with tqdm(total=len(fsh_lines_list), desc="Writing FSH to files", dynamic_ncols=True) as pbar:
-        ## AT 15/11/2023: decided in Oct to (temporary) not use this feature until a proper use case for it has been identified.
-        # for file_name, questionnaire_fsh_lines, questionnaire_terminology_fsh_lines, question_reference_codesystem_fsh_lines, question_reference_valueset_fsh_lines, short_name, version in fsh_lines_list:
-        for file_name, questionnaire_fsh_lines, questionnaire_terminology_fsh_lines, short_name, version in fsh_lines_list:
+        # Track if the DSCN sushi-config.yaml file has been created
+        dscn_sushi_created = False
+
+        for file_name, questionnaire_fsh_lines, questionnaire_terminology_fsh_lines, short_name, version, lpds_healthboard_abbreviation in fsh_lines_list:
             logging.info(f'Saving {file_name}...')
-            write_to_file(questionnaire_fsh_lines,                  questionnaire_folder, short_name, output_folder, version )
-            write_to_file(questionnaire_terminology_fsh_lines,      terminology_folder,   short_name, output_folder, version )
-            
-            ## AT 15/11/2023: decided in Oct to (temporary) not use this feature until a proper use case for it has been identified. 
-            #write_to_file(question_reference_codesystem_fsh_lines,  terminology_folder,   short_name, output_folder, version )
-            #write_to_file(question_reference_valueset_fsh_lines,    terminology_folder , 'QuestionReferenceVS', output_folder, '')
+
+            # Determine the base folder
+            if lpds_healthboard_abbreviation:
+                # LPDS folder structure
+                base_folder = Path(output_folder) / "LPDS" / lpds_healthboard_abbreviation / "input" / "fsh"
+                canonical_url = lpds_healthboard_abbreviation_dict.get(lpds_healthboard_abbreviation, "https://fhir.nhs.wales")
+            else:
+                # DSCN folder structure
+                base_folder = Path(output_folder) / "DSCN" / "input" / "fsh"
+                canonical_url = "https://fhir.nhs.wales"
+
+            # Define questionnaire and terminology folders
+            questionnaire_folder = base_folder / "questionnaires"
+            terminology_folder = base_folder / "terminology"
+
+            # Create folders if they don't exist
+            questionnaire_folder.mkdir(parents=True, exist_ok=True)
+            terminology_folder.mkdir(parents=True, exist_ok=True)
+
+            # Write files
+            write_to_file(questionnaire_fsh_lines, questionnaire_folder, short_name, version)
+            write_to_file(questionnaire_terminology_fsh_lines, terminology_folder, short_name, version)
+
+            # Create sushi-config.yaml file for LPDS healthboard or DSCN if not yet created
+            if lpds_healthboard_abbreviation or not dscn_sushi_created:
+                sushi_config_path = base_folder.parent.parent / "sushi-config.yaml"
+                sushi_config_content = f"canonical: {canonical_url}\nfhirVersion: 4.0.1\nversion: 0.1.0\nFSHOnly: true"
+                with sushi_config_path.open('w', encoding='utf-8') as sushi_file:
+                    sushi_file.write(sushi_config_content)
+
+                if not lpds_healthboard_abbreviation:
+                    dscn_sushi_created = True
+
             pbar.update(1)
             logging.info(f'Saved {file_name}...')
 
-def write_to_file(lines: list, foldername: str, file_name: str, output_folder: str, version: str) -> None:
-    folder = Path(output_folder) / foldername
-    folder.mkdir(parents=True, exist_ok=True) 
+def write_to_file(lines: list, folder: Path, file_name: str, version: str) -> None:
     filepath = folder / (f"{file_name}-v{version}.fsh")
     
     mode = 'a' if filepath.exists() else 'w'
