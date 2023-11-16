@@ -205,7 +205,7 @@ def create_fsh_questionnaire_terminology(df_choices: pd.DataFrame, short_name: s
             f'* ^version = "{version}"',
             f'* ^status = #draft',
             f'* ^copyright = "{copyright_vs}"',
-            f'* ^publisher = "{prefix or "NHS Wales"}"',
+            f'* ^publisher = "{publisher}"',
             '',
         ]
     
