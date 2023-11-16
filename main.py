@@ -5,19 +5,6 @@ import xlsform_to_fsh_converter as fsh
 import file_writer as fw
 import setup
 
-"""
-Author  Version    Date         Comment
----------------------------------------------------------------------------------------------------------
-Firely  1.0.0-rc1  2023-09-26   Moved codebase to dedicatied repository. Refactored code to work within
-                                the input and output folders. Configured SUSHI within the output folder.
-Firely  1.0.0-rc2               Support for DSCN and LPDS processing. 
-                                Updated to latest naming conventions for resource identities.
-                                Improved output overview file containig what has been processed. 
-                                Removed the creation of QuestionReferene CodeSystems and ValueSet
-
----------------------------------------------------------------------------------------------------------
-"""
-
 __version__ = '1.0.0-rc2'
 input_folder = 'input/'
 output_folder = 'output/'
