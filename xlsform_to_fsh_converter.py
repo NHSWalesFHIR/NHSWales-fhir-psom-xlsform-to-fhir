@@ -58,7 +58,7 @@ def create_fsh_questionnaire(df_survey: pd.DataFrame, short_name: str, short_id:
     else:
         instance_id = f'DataStandardsWales-PSOM-{short_name}'
         name = f'DataStandardsWalesPSOM{questionnaire_name}'
-        copyright = "© 2023 NHS Wales. The information provided in this Questionnaire must not be used to re-produce a PROM questionnaire form, this would result in a breach of copyright. The user must ensure they comply with the terms of the license set by the license holder for any PROM questionnaires used." 
+        copyright = "The information provided in this Questionnaire must not be used to re-produce a PROM questionnaire form, this would result in a breach of copyright. The user must ensure they comply with the terms of the license set by the license holder for any PROM questionnaires used." 
 
     lines = [
         f'Instance: {instance_id}',
@@ -168,8 +168,8 @@ def create_fsh_questionnaire_terminology(df_choices: pd.DataFrame, short_name: s
             prefix = ''
             cs_name = (short_name + proper_list_name + 'CS').replace('-', '_')
             vs_name = (short_name + proper_list_name + 'VS').replace('-', '_')
-            copyright_cs = "© 2023 NHS Wales. The information provided in the CodeSystem is part of a licensed PROM questionnaire form. The user must ensure they comply with the terms of the license set by the license holder for any PROM questionnaires used."
-            copyright_vs = "© 2023 NHS Wales. The information provided in the ValueSet is part of a licensed PROM questionnaire form. The user must ensure they comply with the terms of the license set by the license holder for any PROM questionnaires used."
+            copyright_cs = "The information provided in the CodeSystem is part of a licensed PROM questionnaire form. The user must ensure they comply with the terms of the license set by the license holder for any PROM questionnaires used."
+            copyright_vs = "The information provided in the ValueSet is part of a licensed PROM questionnaire form. The user must ensure they comply with the terms of the license set by the license holder for any PROM questionnaires used."
             publisher = "NHS Wales"
             
         cs_id = generate_vs_or_cs_id(short_name, list_name, 'CS', lpds_healthboard_abbreviation)
@@ -228,7 +228,7 @@ def create_fsh_questionnaire_terminology(df_choices: pd.DataFrame, short_name: s
 #    else:
 #        cs_name = (short_name + 'QuestionReferenceCS').replace('-', '_')
 #        cs_id = su.make_fhir_compliant((short_name + '-' + 'QuestionReferenceCS'))
-#        copyright = "© 2023 NHS Wales. The information provided in this CodeSystem must not be used to re-produce a PROM questionnaire form, this would result in a breach of copyright. The user must ensure they comply with the terms of the license set by the license holder for any PROM questionnaires used."
+#        copyright = "The information provided in this CodeSystem must not be used to re-produce a PROM questionnaire form, this would result in a breach of copyright. The user must ensure they comply with the terms of the license set by the license holder for any PROM questionnaires used."
 #
 #    lines_cs = [
 #        f'CodeSystem: {cs_id}',
@@ -267,7 +267,7 @@ def create_fsh_questionnaire_terminology(df_choices: pd.DataFrame, short_name: s
 #            f'Description: "Accumulated question reference codes for the questions in PSOM Questionnaires."',
 #            f'* ^name = "DataStandardsWalesPROMSQuestionReferenceVS"',
 #            f'* ^status = #draft',
-#            f'* ^copyright = "© 2023 NHS Wales. The information provided in this ValueSet must not be used to re-produce a PROM questionnaire form, this would result in a breach of copyright. The user must ensure they comply with the terms of the license set by the license holder for any PROM questionnaires used."',
+#            f'* ^copyright = "The information provided in this ValueSet must not be used to re-produce a PROM questionnaire form, this would result in a breach of copyright. The user must ensure they comply with the terms of the license set by the license holder for any PROM questionnaires used."',
 #            f'* ^publisher = "NHS Wales"',
 #            '',
 #            ] 
