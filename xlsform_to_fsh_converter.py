@@ -52,13 +52,17 @@ def create_fsh_questionnaire(df_survey: pd.DataFrame, short_name: str, short_id:
     select_one_pattern = re.compile("select[_ ]one[_ ]?", re.IGNORECASE)
 
     if lpds_healthboard_abbreviation:
+        clean_abbreviation = lpds_healthboard_abbreviation.replace('-', '')
         instance_id = f'{lpds_healthboard_abbreviation}-{short_name}'
         name = f'{lpds_healthboard_abbreviation}{questionnaire_name}'
         copyright = "The information provided in this Questionnaire may not be used to re-produce a PROM questionnaire form, this may result in a breach of copyright. The user must ensure they comply with the terms of the license set by the license holder for any PROM questionnaires used."
+        publisher = clean_abbreviation
+
     else:
         instance_id = f'DataStandardsWales-PSOM-{short_name}'
         name = f'DataStandardsWalesPSOM{questionnaire_name}'
         copyright = "The information provided in this Questionnaire must not be used to re-produce a PROM questionnaire form, this would result in a breach of copyright. The user must ensure they comply with the terms of the license set by the license holder for any PROM questionnaires used." 
+        publisher = "NHS Wales"
 
     lines = [
         f'Instance: {instance_id}',
@@ -68,6 +72,7 @@ def create_fsh_questionnaire(df_survey: pd.DataFrame, short_name: str, short_id:
         f'* name = "{name}"',
         f'* version = "{version}"',
         f'* status = #draft',
+        f'* publisher = "{publisher}"',
         f'* description = "PSOM Questionnaire: {title}."',
         f'* copyright = "{copyright}"',
         '',
