@@ -100,7 +100,9 @@ def parsing_version(df_settings, file_name):
         elif not np.issubdtype(type(version_val), np.number) or version_val < 0:
             raise TypeError('XLSForm settings version is not a non-negative number.')
 
-        version_val = int(version_val) if version_val.is_integer() else version_val
+        if isinstance(version_val, float) and version_val.is_integer():
+            version_val = int(version_val)
+            
         return str(version_val)
     
     except (ValueError, TypeError) as e:
@@ -180,9 +182,6 @@ def parsing_lpds_healthboard_abbreviation(df_settings, file_name, lpds_healthboa
             lpds_healthboard_abbreviation = lpds_healthboard_abbreviation.replace(" ", "-").replace("_", "-")
 
     return lpds_healthboard_abbreviation
-
-
-
 
 def convert_to_xform_and_validate(input_folder: str, output_folder: str) -> None:
     logging.info('Checking input XLSForms by converting them to XForm using pyxfrom libary...')
