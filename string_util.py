@@ -18,6 +18,7 @@ def convert_to_camel_case(s: str) -> str:
     >>> convert_to_camel_case('this-is-a-test')
     'ThisIsATest'
     """
+    s = str(s)
     words = re.split('-|–| ', s)
     words = [word.capitalize() for word in words]
     return ''.join(words)
