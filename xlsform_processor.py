@@ -74,7 +74,7 @@ def load_xlsform_data(input_folder: str, file_name: str):
            'choices', and 'settings' sheets of the Excel file, respectively.
     """
 
-    xls = pd.read_excel(os.path.join(input_folder, file_name), sheet_name=None)
+    xls = pd.read_excel(os.path.join(input_folder, file_name), sheet_name=None, keep_default_na=False)
     df_survey = xls['survey'].apply(lambda col: col.map(lambda x: x.strip() if isinstance(x, str) else x))
     df_choices = xls['choices'].apply(lambda col: col.map(lambda x: x.strip() if isinstance(x, str) else x))
     df_settings = xls['settings'].apply(lambda col: col.map(lambda x: x.strip() if isinstance(x, str) else x))
