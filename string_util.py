@@ -40,7 +40,7 @@ def pascal_to_readable(s : str) -> str:
 def format_string_case(s: str) -> str:
     """
     This function takes a string as input and returns a new string where the 
-    first word is in title case (i.e., the first letter is capitalized and 
+    first word is in title case (i.e. the first letter is capitalized and 
     all subsequent letters are in lower case), and all subsequent words are in lower case.
 
     Args:
@@ -55,7 +55,7 @@ def format_string_case(s: str) -> str:
 def pascal_to_case(s : str) -> str:
     """
     This function takes a PascalCase string as input and returns a new string where 
-    the first word is in title case (i.e., the first letter is capitalized and 
+    the first word is in title case (i.e. the first letter is capitalized and 
     all subsequent letters are in lower case), and all subsequent words are in lower case.
     
     If the input is not a string, the function returns None.

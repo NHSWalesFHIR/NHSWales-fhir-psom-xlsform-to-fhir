@@ -37,7 +37,7 @@ Refer to the mapping table provided for details on how specific DSCN fields corr
 - `xlsform_to_fsh_converter.py`: Converts the processed XLSForm data to FSH lines.
 
 ## Dependencies
-This script depends Python 3.x and on the requirements listed in `requirements.txt`
+This script depends on Python 3.x and on the requirements listed in `requirements.txt`.
 Make sure to have these modules available in your Python environment before running the script.
 
 ## Mapping Table: DSCN/LPDS Fields to XLSForm and FHIR
@@ -46,10 +46,10 @@ The table below outlines the mapping from DSCN fields and metadata to correspond
 
 | DSCN/LPDS Field                          | XLSForm Field ([tab] column name)          | FHIR Element(s)          |
 | ----------------------------------- | ------------------------ | ------------------------ |
-| Full PROMs Tool name (e.g., Your General Health Questionnaire)                | [settings] form_title  | `Questionnaire.title`<br>`ValueSet.title`<br>`CodeSystem.title`<br>`ValueSet.description`<br>`CodeSystem.description` |
-| PROMs Tool code (e.g., E5D1)                        | [settings] form_id     | Not used                 |
-| PROMs Data Standard Version (e.g., 2022014)            | [settings] version     | `Questionnaire.version`<br>`ValueSet.version`<br>`CodeSystem.version` |
-| PROMs Tool Short name  (e.g., EQ5D5L)                            | [settings] tool_short_form | `Questionnaire.id`<br>`Questionnaire.name`<br>`Questionnaire.url`<br>`ValueSet.id`<br>`ValueSet.name`<br>`ValueSet.url`<br>`CodeSystem.id`<br>`CodeSystem.name`<br>`CodeSystem.url`<br>Used for File naming |
+| Full PROMs Tool name (e.g. Your General Health Questionnaire)                | [settings] form_title  | `Questionnaire.title`<br>`ValueSet.title`<br>`CodeSystem.title`<br>`ValueSet.description`<br>`CodeSystem.description` |
+| PROMs Tool code (e.g. E5D1)                        | [settings] form_id     | Not used                 |
+| PROMs Data Standard Version (e.g. 2022014)            | [settings] version     | `Questionnaire.version`<br>`ValueSet.version`<br>`CodeSystem.version` |
+| PROMs Tool Short name  (e.g. EQ5D5L)                            | [settings] tool_short_form | `Questionnaire.id`<br>`Questionnaire.name`<br>`Questionnaire.url`<br>`ValueSet.id`<br>`ValueSet.name`<br>`ValueSet.url`<br>`CodeSystem.id`<br>`CodeSystem.name`<br>`CodeSystem.url`<br>Used for File naming |
 | Healthboard Abbreviation (e.g. CAV) to determine if XLSForm is a LPDS             | [settings] lpds_healthboard_abbreviation | `Questionnaire.id`<br>`Questionnaire.name`<br>`Questionnaire.url`<br>`ValueSet.id`<br>`ValueSet.name`<br>`ValueSet.url`<br>`CodeSystem.id`<br>`CodeSystem.name`<br>`CodeSystem.url`<br>Used for Folder naming |
 | Format                              | [survey] format        | `Questionnaire.item.extension(url = http://hl7.org/fhir/StructureDefinition/entryFormat)` |
 | -                                   | [survey] sensitive     | `Questionnaire.item.extension(url = http://hl7.org/fhir/uv/security-label-ds4p/StructureDefinition/extension-inline-sec-label)` |
