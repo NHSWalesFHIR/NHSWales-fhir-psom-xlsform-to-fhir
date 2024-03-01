@@ -6,25 +6,24 @@ import string_util as su
 def convert_to_fsh(processed_xlsforms):
     fsh_lines_list = []
     ## AT 15/11/2023: decided in Oct to (temporary) not use this feature until a proper use case for it has been identified. 
-    #unique_codes = set()
+    unique_codes = set()
     with tqdm(total=len(processed_xlsforms), desc="Converting to FSH", dynamic_ncols=True) as pbar:
         for file_name, df_survey, df_choices, short_name, short_id, version, title, lpds_healthboard_abbreviation in processed_xlsforms:
                 logging.info(f'Converting {file_name}...')
                 questionnaire_fsh_lines = create_fsh_questionnaire(df_survey, short_name, short_id, version, title, lpds_healthboard_abbreviation)            
                 questionnaire_terminology_fsh_lines = create_fsh_questionnaire_terminology(df_choices, short_name, short_id, version, title, lpds_healthboard_abbreviation)
                 ## AT 15/11/2023: decided in Oct to (temporary) not use this feature until a proper use case for it has been identified. 
-                # question_reference_codesystem_fsh_lines, code_tuple = create_fsh_question_reference_codesystem(df_survey, short_name, short_id, version, title, lpds_healthboard_abbreviation)
-                # unique_codes.update(code_tuple)
-                # pbar.update(1)
-                # fsh_lines_list.append((file_name, questionnaire_fsh_lines, questionnaire_terminology_fsh_lines, question_reference_codesystem_fsh_lines,[], short_name, version))
+                question_reference_codesystem_fsh_lines, code_tuple = create_fsh_question_reference_codesystem(df_survey, short_name, short_id, version, title, lpds_healthboard_abbreviation)
+                unique_codes.update(code_tuple)
                 pbar.update(1)
-                fsh_lines_list.append((file_name, questionnaire_fsh_lines, questionnaire_terminology_fsh_lines, short_name, version, lpds_healthboard_abbreviation))
+                fsh_lines_list.append((file_name, questionnaire_fsh_lines, questionnaire_terminology_fsh_lines, short_name, version, lpds_healthboard_abbreviation, question_reference_codesystem_fsh_lines))
+                #pbar.update(1)
+                #fsh_lines_list.append((file_name, questionnaire_fsh_lines, questionnaire_terminology_fsh_lines, short_name, version, lpds_healthboard_abbreviation))
                 logging.info(f'Converted {file_name}...')
     
     ## AT 15/11/2023: decided in Oct to (temporary) not use this feature until a proper use case for it has been identified. 
-    #question_reference_valueset_fsh_lines = create_fsh_question_reference_valueset(unique_codes)
-    #fsh_lines_list.append(("QuestionReferenceVS", [], [],[], question_reference_valueset_fsh_lines, 'QuestionReferenceVS', '0.0.1'))
-
+    question_reference_valueset_fsh_lines = create_fsh_question_reference_valueset(unique_codes)
+    fsh_lines_list.append(("QuestionReferenceVS", [], [], 'QuestionReferenceVS', '0.0.1', [], question_reference_valueset_fsh_lines))
     return fsh_lines_list
 
 def generate_vs_or_cs_id(short_name: str, list_name: str, id_type: str, lpds_healthboard_abbreviation: str = None) -> str:
@@ -223,66 +222,65 @@ def create_fsh_questionnaire_terminology(df_choices: pd.DataFrame, short_name: s
 
     return lines
 
-## AT 15/11/2023: decided in Oct to (temporary) not use this feature until a proper use case for it has been identified. 
-#def create_fsh_question_reference_codesystem(df_survey: pd.DataFrame, short_name: str, short_id: str, version: str, title: str, lpds_healthboard_abbreviation: str = None) -> list:
-#    lines = []
-#    if lpds_healthboard_abbreviation:
-#        cs_name = (lpds_healthboard_abbreviation + short_name + 'QuestionReferenceCS').replace('-', '_')
-#        cs_id = su.make_fhir_compliant((lpds_healthboard_abbreviation + '-' + short_name + '-' + 'QuestionReferenceCS'))
-#        copyright = "TO ADD"
-#    else:
-#        cs_name = (short_name + 'QuestionReferenceCS').replace('-', '_')
-#        cs_id = su.make_fhir_compliant((short_name + '-' + 'QuestionReferenceCS'))
-#        copyright = "The information provided in this CodeSystem must not be used to re-produce a PROM questionnaire form, this would result in a breach of copyright. The user must ensure they comply with the terms of the license set by the license holder for any PROM questionnaires used."
-#
-#    lines_cs = [
-#        f'CodeSystem: {cs_id}',
-#        f'Id: {cs_id}',
-#        f'Title: "{short_name} Question Reference CodeSystem"',
-#        f'Description: "Question Reference codes for the questions in PSOM Questionnaire \'{title}\'."',
-#        f'* ^name = "{cs_name}"',
-#        f'* ^version = "{version}"',
-#        f'* ^status = #draft',
-#        f'* ^copyright = "{copyright}"',
-#        f'* ^publisher = "{lpds_healthboard_abbreviation or "NHS Wales"}"',
-#        f'* ^caseSensitive = true',
-#        '',
-#    ]
-#    seen = set()  # Set to keep track of seen (name, label) pairs
-#
-#    for _, row in df_survey.iterrows():
-#        if pd.notna(row["name"]):  # Check for non-empty "name"
-#            code_tuple = (row["name"], row["label"], cs_id)
-#            if code_tuple not in seen:
-#                code = f'* #{row["name"]} "{su.escape_quotes(row["label"])}"'
-#                lines_cs.append(code)
-#                seen.add(code_tuple)
-#    
-#    lines.extend(lines_cs)
-#    lines.append('')
-#
-#    return lines, seen
+# AT 15/11/2023: decided in Oct to (temporary) not use this feature until a proper use case for it has been identified. 
+def create_fsh_question_reference_codesystem(df_survey: pd.DataFrame, short_name: str, short_id: str, version: str, title: str, lpds_healthboard_abbreviation: str = None) -> list:
+   lines = []
+   if lpds_healthboard_abbreviation:
+       cs_name = (lpds_healthboard_abbreviation + short_name + 'QuestionReferenceCS').replace('-', '_')
+       cs_id = su.make_fhir_compliant((lpds_healthboard_abbreviation + '-' + short_name + '-' + 'QuestionReferenceCS'))
+       copyright = "TO ADD"
+   else:
+       cs_name = (short_name + 'QuestionReferenceCS').replace('-', '_')
+       cs_id = su.make_fhir_compliant((short_name + '-' + 'QuestionReferenceCS'))
+       copyright = "The information provided in this CodeSystem must not be used to re-produce a PROM questionnaire form, this would result in a breach of copyright. The user must ensure they comply with the terms of the license set by the license holder for any PROM questionnaires used."
 
+   lines_cs = [
+       f'CodeSystem: {cs_id}',
+       f'Id: {cs_id}',
+       f'Title: "{short_name} Question Reference CodeSystem"',
+       f'Description: "Question Reference codes for the questions in PSOM Questionnaire \'{title}\'."',
+       f'* ^name = "{cs_name}"',
+       f'* ^version = "{version}"',
+       f'* ^status = #draft',
+       f'* ^copyright = "{copyright}"',
+       f'* ^publisher = "{lpds_healthboard_abbreviation or "NHS Wales"}"',
+       f'* ^caseSensitive = true',
+       '',
+   ]
+   seen = set()  # Set to keep track of seen (name, label) pairs
+
+   for _, row in df_survey.iterrows():
+       if pd.notna(row["name"]) and row["name"] != '':  # Check for non-empty "name"
+           code_tuple = (row["name"], row["label"], cs_id)
+           if code_tuple not in seen:
+               code = f'* #{row["name"]} "{su.escape_quotes(row["label"])}"'
+               lines_cs.append(code)
+               seen.add(code_tuple)
+    
+   lines.extend(lines_cs)
+   lines.append('')
+
+   return lines, seen
 ## AT 15/11/2023: decided in Oct to (temporary) not use this feature until a proper use case for it has been identified. 
-#def create_fsh_question_reference_valueset(unique_codes) -> list:
-#    lines = [
-#            f'ValueSet: QuestionReferenceVS',
-#            f'Id: QuestionReferenceVS',
-#            f'Title: "Question Reference ValueSet"',
-#            f'Description: "Accumulated question reference codes for the questions in PSOM Questionnaires."',
-#            f'* ^name = "DataStandardsWalesPROMSQuestionReferenceVS"',
-#            f'* ^status = #draft',
-#            f'* ^copyright = "The information provided in this ValueSet must not be used to re-produce a PROM questionnaire form, this would result in a breach of copyright. The user must ensure they comply with the terms of the license set by the license holder for any PROM questionnaires used."',
-#            f'* ^publisher = "NHS Wales"',
-#            '',
-#            ] 
-#    # Sort unique_codes by the 'name' field
-#    sorted_unique_codes = sorted(unique_codes, key=lambda x: x[0])
-#
-#    for name, label, cs_id in sorted_unique_codes:
-#        code = f'* {cs_id}#{name} "{su.escape_quotes(label)}"'
-#        lines.append(code)
-#
-#    lines.append('')
-#
-#    return lines
+def create_fsh_question_reference_valueset(unique_codes) -> list:
+    lines = [
+        f'ValueSet: QuestionReferenceVS',
+        f'Id: QuestionReferenceVS',
+        f'Title: "Question Reference ValueSet"',
+        f'Description: "Accumulated question reference codes for the questions in PSOM Questionnaires."',
+        f'* ^name = "DataStandardsWalesPROMSQuestionReferenceVS"',
+        f'* ^status = #draft',
+        f'* ^copyright = "The information provided in this ValueSet must not be used to re-produce a PROM questionnaire form, this would result in a breach of copyright. The user must ensure they comply with the terms of the license set by the license holder for any PROM questionnaires used."',
+        f'* ^publisher = "NHS Wales"',
+        '',
+        ] 
+    # Sort unique_codes by the 'name' field
+    sorted_unique_codes = sorted(unique_codes, key=lambda x: x[0])
+
+    for name, label, cs_id in sorted_unique_codes:
+        code = f'* {cs_id}#{name} "{su.escape_quotes(label)}"'
+        lines.append(code)
+
+    lines.append('')
+
+    return lines

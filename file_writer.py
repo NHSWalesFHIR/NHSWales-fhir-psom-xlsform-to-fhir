@@ -7,7 +7,7 @@ def write_fsh_files(fsh_lines_list, output_folder, lpds_healthboard_abbreviation
         # Track if the DSCN sushi-config.yaml file has been created
         dscn_sushi_created = False
 
-        for file_name, questionnaire_fsh_lines, questionnaire_terminology_fsh_lines, short_name, version, lpds_healthboard_abbreviation in fsh_lines_list:
+        for file_name, questionnaire_fsh_lines, questionnaire_terminology_fsh_lines, short_name, version, lpds_healthboard_abbreviation, question_reference_codesystem_fsh_lines in fsh_lines_list:
             logging.info(f'Saving {file_name}...')
 
             # Determine the base folder
@@ -31,6 +31,7 @@ def write_fsh_files(fsh_lines_list, output_folder, lpds_healthboard_abbreviation
             # Write files
             write_to_file(questionnaire_fsh_lines, questionnaire_folder, short_name, version)
             write_to_file(questionnaire_terminology_fsh_lines, terminology_folder, short_name, version)
+            write_to_file(question_reference_codesystem_fsh_lines, terminology_folder, short_name, version)
 
             # Create sushi-config.yaml file for LPDS healthboard or DSCN if not yet created
             if lpds_healthboard_abbreviation or not dscn_sushi_created:
