@@ -23,7 +23,7 @@ def convert_to_fsh(processed_xlsforms):
     
     ## AT 15/11/2023: decided in Oct to (temporary) not use this feature until a proper use case for it has been identified. 
     question_reference_valueset_fsh_lines = create_fsh_question_reference_valueset(unique_codes)
-    fsh_lines_list.append(("QuestionReferenceVS", [], [], 'QuestionReferenceVS', '0.0.1', [], question_reference_valueset_fsh_lines))
+    fsh_lines_list.append(([], [], [], 'QuestionReferenceVS', '0.0.1', [], question_reference_valueset_fsh_lines))
     return fsh_lines_list
 
 def generate_vs_or_cs_id(short_name: str, list_name: str, id_type: str, lpds_healthboard_abbreviation: str = None) -> str:
