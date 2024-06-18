@@ -9,17 +9,17 @@ def convert_to_fsh(processed_xlsforms):
     unique_codes = set()
     with tqdm(total=len(processed_xlsforms), desc="Converting to FSH", dynamic_ncols=True) as pbar:
         for file_name, df_survey, df_choices, short_name, short_id, version, title, lpds_healthboard_abbreviation in processed_xlsforms:
-                logging.info(f'Converting {file_name}...')
-                questionnaire_fsh_lines = create_fsh_questionnaire(df_survey, short_name, short_id, version, title, lpds_healthboard_abbreviation)            
-                questionnaire_terminology_fsh_lines = create_fsh_questionnaire_terminology(df_choices, short_name, short_id, version, title, lpds_healthboard_abbreviation)
-                ## AT 15/11/2023: decided in Oct to (temporary) not use this feature until a proper use case for it has been identified. 
-                question_reference_codesystem_fsh_lines, code_tuple = create_fsh_question_reference_codesystem(df_survey, short_name, short_id, version, title, lpds_healthboard_abbreviation)
-                unique_codes.update(code_tuple)
-                pbar.update(1)
-                fsh_lines_list.append((file_name, questionnaire_fsh_lines, questionnaire_terminology_fsh_lines, short_name, version, lpds_healthboard_abbreviation, question_reference_codesystem_fsh_lines))
-                #pbar.update(1)
-                #fsh_lines_list.append((file_name, questionnaire_fsh_lines, questionnaire_terminology_fsh_lines, short_name, version, lpds_healthboard_abbreviation))
-                logging.info(f'Converted {file_name}...')
+            logging.info(f'Converting {file_name}...')
+            questionnaire_fsh_lines = create_fsh_questionnaire(df_survey, short_name, short_id, version, title, lpds_healthboard_abbreviation)            
+            questionnaire_terminology_fsh_lines = create_fsh_questionnaire_terminology(df_choices, short_name, short_id, version, title, lpds_healthboard_abbreviation)
+            ## AT 15/11/2023: decided in Oct to (temporary) not use this feature until a proper use case for it has been identified. 
+            question_reference_codesystem_fsh_lines, code_tuple = create_fsh_question_reference_codesystem(df_survey, short_name, short_id, version, title, lpds_healthboard_abbreviation)
+            unique_codes.update(code_tuple)
+            pbar.update(1)
+            fsh_lines_list.append((file_name, questionnaire_fsh_lines, questionnaire_terminology_fsh_lines, short_name, version, lpds_healthboard_abbreviation, question_reference_codesystem_fsh_lines))
+            #pbar.update(1)
+            #fsh_lines_list.append((file_name, questionnaire_fsh_lines, questionnaire_terminology_fsh_lines, short_name, version, lpds_healthboard_abbreviation))
+            logging.info(f'Converted {file_name}...')
     
     ## AT 15/11/2023: decided in Oct to (temporary) not use this feature until a proper use case for it has been identified. 
     question_reference_valueset_fsh_lines = create_fsh_question_reference_valueset(unique_codes)

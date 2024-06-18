@@ -1,6 +1,5 @@
 import logging, os, glob, shutil
 import logging
-import pandas as pd
 from openpyxl import load_workbook
 
 def initiate_logging(output_folder):

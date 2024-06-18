@@ -1,9 +1,11 @@
-import re, os, sys, logging, shutil, traceback, subprocess
-from pathlib import Path
-import xlsform_processor as xls
-import xlsform_to_fsh_converter as fsh
+import logging
+import os
+import subprocess
 import file_writer as fw
 import setup
+import xlsform_processor as xls
+import xlsform_to_fsh_converter as fsh
+from pathlib import Path
 
 __version__ = '1.0.0-rc2'
 input_folder = 'input/'

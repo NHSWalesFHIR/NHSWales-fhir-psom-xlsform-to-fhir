@@ -1,7 +1,8 @@
 import pandas as pd
-import os, sys, glob, logging, traceback
+import os, glob, logging, traceback
 import numpy as np
 from tqdm import tqdm
+from Classes.XlsFormData import XlsFormData
 from pyxform import xls2xform
 from pyxform.validators import odk_validate
 import string_util as su
@@ -14,15 +15,15 @@ def process_xlsform_files(input_folder, lpds_healthboard_abbreviation_dict):
             if file_name.endswith('.xlsx'):
                 logging.info(f'Processing {file_name}...')
                 try:
-                        df_survey, df_choices, short_name, short_id, version, title, lpds_healthboard_abbreviation = process_xlsform(input_folder, file_name, lpds_healthboard_abbreviation_dict)
-                        processed_xlsforms.append((file_name, df_survey, df_choices, short_name, short_id, version, title, lpds_healthboard_abbreviation))
-                        
-                        md_entry = {'short_name': short_name, 'short_id': short_id, 'version': version, 'title': title}
-                        if lpds_healthboard_abbreviation is not None:
-                            md_entry['lpds_healthboard_abbreviation'] = lpds_healthboard_abbreviation
-                        processed_xlsforms_md_entries.append(md_entry)
+                    data = process_xlsform(input_folder, file_name, lpds_healthboard_abbreviation_dict)
+                    processed_xlsforms.append((file_name, data.df_survey, data.df_choices, data.short_name, data.short_id, data.version, data.title, data.lpds_healthboard_abbreviation))
+                    
+                    md_entry = {'short_name': data.short_name, 'short_id': data.short_id, 'version': data.version, 'title': data.title}
+                    if data.lpds_healthboard_abbreviation is not None:
+                        md_entry['lpds_healthboard_abbreviation'] = data.lpds_healthboard_abbreviation
+                    processed_xlsforms_md_entries.append(md_entry)
 
-                        pbar.update(1)
+                    pbar.update(1)
                 except Exception as e:
                     logging.error(f'Error processing {file_name}: {str(e)}')
                     logging.error(traceback.format_exc())     
@@ -81,107 +82,22 @@ def load_xlsform_data(input_folder: str, file_name: str):
 
     return df_survey, df_choices, df_settings
 
-def process_xlsform(input_folder: str, file_name: str, lpds_healthboard_abbreviation_dict: dict):
+def process_xlsform(input_folder: str, file_name: str, lpds_healthboard_abbreviation_dict: dict) -> XlsFormData:
     df_survey, df_choices, df_settings = load_xlsform_data(input_folder, file_name)
+    data = XlsFormData(df_survey, df_choices)
 
     try:
-        version, short_name, title, short_id, lpds_healthboard_abbreviation = parsing_version(df_settings, file_name), parsing_tool_short_form(df_settings, file_name), parsing_form_title(df_settings, file_name), parsing_form_id(df_settings, file_name), parsing_lpds_healthboard_abbreviation(df_settings, file_name, lpds_healthboard_abbreviation_dict)
+        data.set_and_parse_version(df_settings, file_name)
+        data.set_and_parse_short_name(df_settings, file_name)
+        data.set_and_parse_title(df_settings, file_name)
+        data.set_and_parse_form_id(df_settings, file_name)
+        data.set_and_parse_lpds_healthboard_abbreviation(df_settings, file_name, lpds_healthboard_abbreviation_dict)
+
     except (ValueError, TypeError) as e:
         logging.exception(f'Error processing {file_name}: {str(e)}')
         raise
 
-    return df_survey, df_choices, short_name, short_id, version, title, lpds_healthboard_abbreviation
-
-def parsing_version(df_settings, file_name):
-    try:
-        version_val = df_settings["version"].values[0]
-        if version_val is None:
-            raise ValueError('XLSForm settings version is missing.')
-        elif not np.issubdtype(type(version_val), np.number) or version_val < 0:
-            raise TypeError('XLSForm settings version is not a non-negative number.')
-
-        if isinstance(version_val, float) and version_val.is_integer():
-            version_val = int(version_val)
-            
-        return str(version_val)
-    
-    except (ValueError, TypeError) as e:
-        logging.exception(f'Error parsing version in {file_name}: {str(e)}')
-        raise
-    
-
-def parsing_tool_short_form(df_settings, file_name):
-    try:
-        tool_name = df_settings['tool_short_form'].values[0]
-        if tool_name is None:
-            raise ValueError('XLSForm settings tool_short_name is missing.')
-        elif not isinstance(tool_name, str):
-            raise TypeError('XLSForm settings tool_short_name is not a string.')
-
-        short_name = tool_name.replace(" ", "-").replace("_", "-")
-        if not su.validate_string_FHIR_id(short_name):
-            logging.warning(f'{file_name}: XLSForm settings tool_short_name cannot be used for FHIR ids.')
-        return str(short_name)
-    
-    except (ValueError, TypeError) as e:
-        logging.exception(f'Error parsing tool_name in {file_name}: {str(e)}')
-        raise
-
-def parsing_form_title(df_settings, file_name):
-    try:
-        form_title = df_settings['form_title'].values[0]
-        if form_title is None:
-            raise ValueError('XLSForm settings form_title is missing.')
-        elif not isinstance(form_title, str):
-            raise TypeError('XLSForm settings form_title is not a string.')
-
-        return str(form_title)
-    except (ValueError, TypeError) as e:
-        logging.exception(f'Error parsing form_title in {file_name}: {str(e)}')
-        raise
-
-def parsing_form_id(df_settings, file_name):
-    try:
-        form_id = df_settings['form_id'].values[0]
-        if form_id is None:
-            raise ValueError('XLSForm settings form_id is missing.')
-        elif not isinstance(form_id, str):
-            raise TypeError('XLSForm settings form_id is not a string.')
-
-        return str(form_id.replace(" ", "-").replace("_", "-"))
-    except (ValueError, TypeError) as e:
-        logging.exception(f'Error parsing form_id in {file_name}: {str(e)}')
-        raise
-
-def parsing_lpds_healthboard_abbreviation(df_settings, file_name, lpds_healthboard_abbreviation_dict):
-    lpds_healthboard_abbreviation = None
-
-    if 'lpds_healthboard_abbreviation' in df_settings:
-        lpds_healthboard_abbreviation = df_settings['lpds_healthboard_abbreviation'].values[0]
-
-        # Convert to string if not None
-        if lpds_healthboard_abbreviation is not None:
-            lpds_healthboard_abbreviation = str(lpds_healthboard_abbreviation)
-
-            if lpds_healthboard_abbreviation.strip() == "":
-                logging.error(f'{file_name}: lpds_healthboard_abbreviation column is provided but the value is empty.')
-                raise ValueError('lpds_healthboard_abbreviation column is provided but the value is empty.')
-            
-            if not lpds_healthboard_abbreviation.isalpha():
-                logging.error(f'{file_name}: XLSForm settings lpds_healthboard_abbreviation is not a string.')
-                raise TypeError('XLSForm settings lpds_healthboard_abbreviation is not a string.')
-
-            valid_keys = ", ".join(lpds_healthboard_abbreviation_dict.keys())
-            if lpds_healthboard_abbreviation not in lpds_healthboard_abbreviation_dict:
-                logging.error(f"{file_name}: lpds_healthboard_abbreviation '{lpds_healthboard_abbreviation}' is not a valid abbreviation. Valid abbreviation are: {valid_keys}.")
-            
-            if not su.validate_string_FHIR_id(lpds_healthboard_abbreviation):
-                logging.warning(f'{file_name}: XLSForm settings lpds_healthboard_abbreviation cannot be used for FHIR ids. Making FHIR id compliant')
-                lpds_healthboard_abbreviation = su.make_fhir_compliant(lpds_healthboard_abbreviation)
-            
-            lpds_healthboard_abbreviation = lpds_healthboard_abbreviation.replace(" ", "-").replace("_", "-")
-
-    return lpds_healthboard_abbreviation
+    return data
 
 def convert_to_xform_and_validate(input_folder: str, output_folder: str) -> None:
     logging.info('Checking input XLSForms by converting them to XForm using pyxfrom libary...')
