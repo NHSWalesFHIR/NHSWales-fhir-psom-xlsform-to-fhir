@@ -14,7 +14,7 @@ dscn_folder = Path(output_folder) / "DSCN"
 lpds_folder = Path(output_folder) / "LPDS"
 processed_xlsforms = []
 processed_xlsforms_md_overview = []
-fsh_lines_list = []
+#fsh_lines_list = []
 lpds_healthboard_abbreviation_dict = {
     "ABU": "https://fhir.abuhb.nhs.wales",
     "BCU": "https://fhir.bcuhb.nhs.wales",
@@ -41,10 +41,11 @@ print('Step 1 - Parse XLSForms')
 processed_xlsforms, processed_xlsforms_md_overview = xls.process_xlsform_files(input_folder, lpds_healthboard_abbreviation_dict)
 
 print('Step 2 - Convert to FSH lines')
-fsh_lines_list = fsh.convert_to_fsh(processed_xlsforms)
+fsh_lines_list_DSCN, fsh_lines_list_LPDS = fsh.convert_to_fsh(processed_xlsforms)
 
 print('Step 3 - Writing to FSH files')
-fw.write_fsh_files(fsh_lines_list, output_folder, lpds_healthboard_abbreviation_dict)
+fw.write_fsh_files(fsh_lines_list_DSCN, output_folder, lpds_healthboard_abbreviation_dict)
+fw.write_fsh_files(fsh_lines_list_LPDS, output_folder, lpds_healthboard_abbreviation_dict)
 fw.write_to_md_file(processed_xlsforms_md_overview, os.path.join(output_folder, 'Overview of processed XLSForms.md'))
 logging.info('Conversion to FSH done!')
 

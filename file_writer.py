@@ -13,7 +13,10 @@ def write_fsh_files(fsh_lines_list, output_folder, lpds_healthboard_abbreviation
             # Determine the base folder
             if lpds_healthboard_abbreviation:
                 # LPDS folder structure
-                base_folder = Path(output_folder) / "LPDS" / lpds_healthboard_abbreviation / "input" / "fsh"
+                if lpds_healthboard_abbreviation is 'LPDS':
+                    base_folder = Path(output_folder) / "LPDS" 
+                else:
+                    base_folder = Path(output_folder) / "LPDS" / lpds_healthboard_abbreviation / "input" / "fsh"
                 canonical_url = lpds_healthboard_abbreviation_dict.get(lpds_healthboard_abbreviation, "https://fhir.nhs.wales")
             else:
                 # DSCN folder structure

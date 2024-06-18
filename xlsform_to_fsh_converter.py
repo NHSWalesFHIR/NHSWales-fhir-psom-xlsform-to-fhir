@@ -4,27 +4,39 @@ from tqdm import tqdm
 import string_util as su
     
 def convert_to_fsh(processed_xlsforms):
-    fsh_lines_list = []
+    sorted_processed_xlsforms = sorted(processed_xlsforms, key=lambda tup: tup[3])
+
+    fsh_lines_list_DSCN = []
+    fsh_lines_list_LPDS = []
     ## AT 15/11/2023: decided in Oct to (temporary) not use this feature until a proper use case for it has been identified. 
-    unique_codes = set()
-    with tqdm(total=len(processed_xlsforms), desc="Converting to FSH", dynamic_ncols=True) as pbar:
-        for file_name, df_survey, df_choices, short_name, short_id, version, title, lpds_healthboard_abbreviation in processed_xlsforms:
-                logging.info(f'Converting {file_name}...')
-                questionnaire_fsh_lines = create_fsh_questionnaire(df_survey, short_name, short_id, version, title, lpds_healthboard_abbreviation)            
-                questionnaire_terminology_fsh_lines = create_fsh_questionnaire_terminology(df_choices, short_name, short_id, version, title, lpds_healthboard_abbreviation)
-                ## AT 15/11/2023: decided in Oct to (temporary) not use this feature until a proper use case for it has been identified. 
-                question_reference_codesystem_fsh_lines, code_tuple = create_fsh_question_reference_codesystem(df_survey, short_name, short_id, version, title, lpds_healthboard_abbreviation)
-                unique_codes.update(code_tuple)
-                pbar.update(1)
-                fsh_lines_list.append((file_name, questionnaire_fsh_lines, questionnaire_terminology_fsh_lines, short_name, version, lpds_healthboard_abbreviation, question_reference_codesystem_fsh_lines))
-                #pbar.update(1)
-                #fsh_lines_list.append((file_name, questionnaire_fsh_lines, questionnaire_terminology_fsh_lines, short_name, version, lpds_healthboard_abbreviation))
-                logging.info(f'Converted {file_name}...')
+    unique_codes_DSCN = []
+    unique_codes_LPDS = []
+    with tqdm(total=len(sorted_processed_xlsforms), desc="Converting to FSH", dynamic_ncols=True) as pbar:
+        for file_name, df_survey, df_choices, short_name, short_id, version, title, lpds_healthboard_abbreviation in sorted_processed_xlsforms:
+            logging.info(f'Converting {file_name}...')
+            questionnaire_fsh_lines = create_fsh_questionnaire(df_survey, short_name, short_id, version, title, lpds_healthboard_abbreviation)            
+            questionnaire_terminology_fsh_lines = create_fsh_questionnaire_terminology(df_choices, short_name, short_id, version, title, lpds_healthboard_abbreviation)
+            ## AT 15/11/2023: decided in Oct to (temporary) not use this feature until a proper use case for it has been identified. 
+            question_reference_codesystem_fsh_lines, code_tuple = create_fsh_question_reference_codesystem(df_survey, short_name, short_id, version, title, lpds_healthboard_abbreviation)
+            if lpds_healthboard_abbreviation is None:
+                unique_codes_DSCN.append(code_tuple)
+            else:
+                unique_codes_LPDS.append(code_tuple)
+            pbar.update(1)
+            if lpds_healthboard_abbreviation is None:
+                fsh_lines_list_DSCN.append((file_name, questionnaire_fsh_lines, questionnaire_terminology_fsh_lines, short_name, version, lpds_healthboard_abbreviation, question_reference_codesystem_fsh_lines))
+            else:
+                fsh_lines_list_LPDS.append((file_name, questionnaire_fsh_lines, questionnaire_terminology_fsh_lines, short_name, version, lpds_healthboard_abbreviation, question_reference_codesystem_fsh_lines))
+            #pbar.update(1)
+            #fsh_lines_list.append((file_name, questionnaire_fsh_lines, questionnaire_terminology_fsh_lines, short_name, version, lpds_healthboard_abbreviation))
+            logging.info(f'Converted {file_name}...')
     
     ## AT 15/11/2023: decided in Oct to (temporary) not use this feature until a proper use case for it has been identified. 
-    question_reference_valueset_fsh_lines = create_fsh_question_reference_valueset(unique_codes)
-    fsh_lines_list.append(([], [], [], 'QuestionReferenceVS', '0.0.1', [], question_reference_valueset_fsh_lines))
-    return fsh_lines_list
+    question_reference_valueset_fsh_lines_DSCN = create_fsh_question_reference_valueset(unique_codes_DSCN)
+    question_reference_valueset_fsh_lines_LPDS = create_fsh_question_reference_valueset(unique_codes_LPDS)
+    fsh_lines_list_DSCN.append(([], [], [], 'QuestionReferenceVSDSCN', '0.0.1', [], question_reference_valueset_fsh_lines_DSCN))
+    fsh_lines_list_LPDS.append(([], [], [], 'QuestionReferenceVSLPDS', '0.0.1', 'LPDS', question_reference_valueset_fsh_lines_LPDS))
+    return fsh_lines_list_DSCN, fsh_lines_list_LPDS
 
 def generate_vs_or_cs_id(short_name: str, list_name: str, id_type: str, lpds_healthboard_abbreviation: str = None) -> str:
     """
@@ -247,7 +259,7 @@ def create_fsh_question_reference_codesystem(df_survey: pd.DataFrame, short_name
        f'* ^caseSensitive = true',
        '',
    ]
-   seen = set()  # Set to keep track of seen (name, label) pairs
+   seen = []  # Set to keep track of seen (name, label) pairs
 
    for _, row in df_survey.iterrows():
        if pd.notna(row["name"]) and row["name"] != '':  # Check for non-empty "name"
@@ -255,14 +267,15 @@ def create_fsh_question_reference_codesystem(df_survey: pd.DataFrame, short_name
            if code_tuple not in seen:
                code = f'* #{row["name"]} "{su.escape_quotes(row["label"])}"'
                lines_cs.append(code)
-               seen.add(code_tuple)
+               seen.append(code_tuple)
     
    lines.extend(lines_cs)
    lines.append('')
 
    return lines, seen
 ## AT 15/11/2023: decided in Oct to (temporary) not use this feature until a proper use case for it has been identified. 
-def create_fsh_question_reference_valueset(unique_codes) -> list:
+def create_fsh_question_reference_valueset(unique_codes: list) -> list:
+
     lines = [
         f'ValueSet: QuestionReferenceVS',
         f'Id: QuestionReferenceVS',
@@ -275,11 +288,12 @@ def create_fsh_question_reference_valueset(unique_codes) -> list:
         '',
         ] 
     # Sort unique_codes by the 'name' field
-    sorted_unique_codes = sorted(unique_codes, key=lambda x: x[0])
+    #sorted_unique_codes = sorted(unique_codes, key=lambda x: x[0])
 
-    for name, label, cs_id in sorted_unique_codes:
-        code = f'* {cs_id}#{name} "{su.escape_quotes(label)}"'
-        lines.append(code)
+    for codesystem in unique_codes:
+        for name, label, cs_id in codesystem:
+            code = f'* {cs_id}#{name} "{su.escape_quotes(label)}"'
+            lines.append(code)
 
     lines.append('')
 
