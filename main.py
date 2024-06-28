@@ -37,6 +37,7 @@ print('***************************************************')
 print('Step 0 - Setup and validation')
 setup.delete_output_folder_contents(output_folder)
 setup.initiate_logging(output_folder)
+#TODO Why convert to xform in the first place? Validation is not done anyway
 xls.convert_to_xform_and_validate(input_folder, output_folder)
 
 print('Step 1 - Parse XLSForms')

@@ -16,7 +16,7 @@ def process_xlsform_files(input_folder, lpds_healthboard_abbreviation_dict):
                 logging.info(f'Processing {file_name}...')
                 try:
                     data = process_xlsform(input_folder, file_name, lpds_healthboard_abbreviation_dict)
-                    processed_xlsforms.append((file_name, data.df_survey, data.df_choices, data.short_name, data.short_id, data.version, data.title, data.lpds_healthboard_abbreviation))
+                    processed_xlsforms.append((file_name, data))
                     
                     md_entry = {'short_name': data.short_name, 'short_id': data.short_id, 'version': data.version, 'title': data.title}
                     if data.lpds_healthboard_abbreviation is not None:
