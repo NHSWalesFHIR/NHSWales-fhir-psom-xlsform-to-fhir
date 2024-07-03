@@ -37,11 +37,11 @@ print('***************************************************')
 print('Step 0 - Setup and validation')
 setup.delete_output_folder_contents(output_folder)
 setup.initiate_logging(output_folder)
-#TODO Why convert to xform in the first place? Validation is not done anyway
-xls.convert_to_xform_and_validate(input_folder, output_folder)
+
+XLS_Forms = xls.read_xlsforms(input_folder, lpds_healthboard_abbreviation_dict)
 
 print('Step 1 - Parse XLSForms')
-processed_xlsforms, processed_xlsforms_md_overview = xls.process_xlsform_files(input_folder, lpds_healthboard_abbreviation_dict)
+processed_xlsforms, processed_xlsforms_md_overview = xls.read_and_process_xlsform_files(XLS_Forms)
 
 print('Step 2 - Convert to FSH lines')
 fsh_lines_list = fsh.convert_to_fsh(processed_xlsforms)

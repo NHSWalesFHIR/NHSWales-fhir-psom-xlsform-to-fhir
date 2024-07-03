@@ -1,38 +1,29 @@
-import pandas as pd
-import os, glob, logging, traceback
-import numpy as np
+from typing import List
+import glob, logging, traceback
 from tqdm import tqdm
-from Classes.XlsFormData import XlsFormData
-from pyxform import xls2xform
-from pyxform.validators import odk_validate
 import string_util as su
+from Classes.XLS_Form import XLS_Form
 
-def process_xlsform_files(input_folder, lpds_healthboard_abbreviation_dict):
-    processed_xlsforms = []
+def read_and_process_xlsform_files(XLS_Forms: List[XLS_Form]):
     processed_xlsforms_md_entries = []
-    with tqdm(total=len([f for f in os.listdir(input_folder) if f.endswith('.xlsx')]), desc="Processing XLSForm Excel files", dynamic_ncols=True) as pbar:
-        for file_name in os.listdir(input_folder):
-            if file_name.endswith('.xlsx'):
-                logging.info(f'Processing {file_name}...')
-                try:
-                    data = process_xlsform(input_folder, file_name, lpds_healthboard_abbreviation_dict)
-                    processed_xlsforms.append((file_name, data))
-                    
-                    md_entry = {'short_name': data.short_name, 'short_id': data.short_id, 'version': data.version, 'title': data.title}
-                    if data.lpds_healthboard_abbreviation is not None:
-                        md_entry['lpds_healthboard_abbreviation'] = data.lpds_healthboard_abbreviation
-                    processed_xlsforms_md_entries.append(md_entry)
+    
+    for xlsForm in XLS_Forms:
+        logging.info(f'Processing {xlsForm.file_name}...')
+        try:
+            md_entry = {'short_name': xlsForm.data.short_name, 'short_id': xlsForm.data.short_id, 'version': xlsForm.data.version, 'title': xlsForm.data.title}
+            if xlsForm.data.lpds_healthboard_abbreviation is not None:
+                md_entry['lpds_healthboard_abbreviation'] = xlsForm.data.lpds_healthboard_abbreviation
+            processed_xlsforms_md_entries.append(md_entry)
 
-                    pbar.update(1)
-                except Exception as e:
-                    logging.error(f'Error processing {file_name}: {str(e)}')
-                    logging.error(traceback.format_exc())     
-                logging.info(f'Processed {file_name}...')            
+        except Exception as e:
+            logging.error(f'Error processing {xlsForm.file_name}: {str(e)}')
+            logging.error(traceback.format_exc())     
+        logging.info(f'Processed {xlsForm.file_name}...')            
     
     processed_xlsforms_md_overview = create_processed_xlsforms_md_overview(processed_xlsforms_md_entries)
     print(processed_xlsforms_md_overview)
 
-    return processed_xlsforms, processed_xlsforms_md_overview
+    return XLS_Forms, processed_xlsforms_md_overview
 
 def create_processed_xlsforms_md_overview(processed_xlsforms_md_entries: list) -> str:
     processed_lpds = sorted(
@@ -57,97 +48,18 @@ def create_processed_xlsforms_md_overview(processed_xlsforms_md_entries: list) -
     
     return md_lines
 
-
-def load_xlsform_data(input_folder: str, file_name: str):
-    """
-    Loads XLSForm data from a specified Excel file located in the given input folder.
-    
-    This function reads the 'survey', 'choices', and 'settings' sheets from the specified 
-    Excel file. Each cell in these sheets is processed to strip leading and trailing whitespace
-    if the cell contains a string. Other data types in the cells are left unchanged.
-
-    Parameters:
-    - input_folder (str): The folder path where the Excel file is located.
-    - file_name (str): The name of the Excel file to be loaded.
-
-    Returns:
-    tuple: A tuple containing three pandas DataFrames corresponding to the 'survey', 
-           'choices', and 'settings' sheets of the Excel file, respectively.
-    """
-
-    xls = pd.read_excel(os.path.join(input_folder, file_name), sheet_name=None, keep_default_na=False)
-    df_survey = xls['survey'].apply(lambda col: col.map(lambda x: x.strip() if isinstance(x, str) else x))
-    df_choices = xls['choices'].apply(lambda col: col.map(lambda x: x.strip() if isinstance(x, str) else x))
-    df_settings = xls['settings'].apply(lambda col: col.map(lambda x: x.strip() if isinstance(x, str) else x))
-
-    return df_survey, df_choices, df_settings
-
-def process_xlsform(input_folder: str, file_name: str, lpds_healthboard_abbreviation_dict: dict) -> XlsFormData:
-    df_survey, df_choices, df_settings = load_xlsform_data(input_folder, file_name)
-    data = XlsFormData(df_survey, df_choices)
-
-    try:
-        data.set_and_parse_version(df_settings, file_name)
-        data.set_and_parse_short_name(df_settings, file_name)
-        data.set_and_parse_title(df_settings, file_name)
-        data.set_and_parse_form_id(df_settings, file_name)
-        data.set_and_parse_lpds_healthboard_abbreviation(df_settings, file_name, lpds_healthboard_abbreviation_dict)
-
-    except (ValueError, TypeError) as e:
-        logging.exception(f'Error processing {file_name}: {str(e)}')
-        raise
-
-    return data
-
-def convert_to_xform_and_validate(input_folder: str, output_folder: str) -> None:
+def read_xlsforms(input_folder: str, lpds_healthboard_abbreviation_dict: dict) -> None:
     logging.info('Checking input XLSForms by converting them to XForm using pyxfrom libary...')
     # Get list of all .xlsx files in the input folder
     xls_files = glob.glob(input_folder + "*.xlsx")
 
-    if not os.path.exists(f"{output_folder}XForm"):
-        os.makedirs(f"{output_folder}XForm")
-        
-        print(f"Created {output_folder}XForm folder")
-        logging.info(f"Created {output_folder}XForm folder")
-    
-    print('Validating XSLForms by converting to XForms...')
-    logging.info('Validating XSLForms by converting to XForms...')
+    XLS_Forms = []
     
     # Loop through all .xlsx files
     for xls_file in tqdm(xls_files):
-        # Create output file path by replacing .xlsx with .xml and changing the directory
-        output_file = output_folder + "XForm/" + xls_file.split('\\')[-1].replace('.xlsx', '.xml')
-        convert_to_xform(xls_file, output_file)
+        xlsForm = XLS_Form(xls_file, xls_file.split('\\')[-1], lpds_healthboard_abbreviation_dict)
+        XLS_Forms.append(xlsForm)
 
     logging.info('XLSForms to XForm conversion and validation done!')
 
-    # Validation of XForm is turned off for now because it didn't work on all tested machines yet.  
-    #print('Validating XForms...')
-    #logging.info('Validating XForms...')
-    #xform_files = glob.glob(input_folder + 'XForm/' + "*.xml")
-    #for x_file in tqdm(xform_files):
-    #    # Create output file path by replacing .xlsx with .xml and changing the directory
-    #    output_file = input_folder + "XForm/" + x_file
-    #    validate_xform(output_file)
-
-def convert_to_xform(input_path, output_path):
-    try:
-        xls2xform.xls2xform_convert(input_path, output_path, validate=False)
-        logging.info(f"Converted {input_path} to XForm successfully.")
-    except Exception as e:
-        logging.error(f"Error occurred while converting {output_path} to XForm: {str(e)}")
-        return str(e)
-
-def validate_xform(xform_path):
-    try:
-        xform_warnings = odk_validate.check_xform(xform_path)
-        if len(xform_warnings) == 0:
-            logging.info(f"{xform_path} XForm is valid with no warnings!")
-        else:
-            logging.warning(f"{xform_path} XForm is valid but has warnings.")
-            logging.warning(xform_warnings)
-        return xform_warnings
-    except Exception as e:
-        logging.error(f"Error occurred while checking {xform_path} xform: {str(e)}")
-        return str(e)
-
+    return XLS_Forms

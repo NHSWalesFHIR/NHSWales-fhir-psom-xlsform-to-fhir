@@ -1,26 +1,26 @@
 import logging
+from typing import List
 import pandas as pd
 from tqdm import tqdm
 import string_util as su
 from Classes.XlsFormData import XlsFormData
 from Classes.Fsh_questionnaire import Fsh_questionnaire
 from Classes.Fsh_terminology import Fsh_terminology
+from Classes.XLS_Form import XLS_Form
     
-def convert_to_fsh(processed_xlsforms):
+def convert_to_fsh(processed_xlsforms: List[XLS_Form]):
     fsh_lines_list = []
     ## AT 15/11/2023: decided in Oct to (temporary) not use this feature until a proper use case for it has been identified. 
     unique_codes = set()
-    with tqdm(total=len(processed_xlsforms), desc="Converting to FSH", dynamic_ncols=True) as pbar:
-        for file_name, data in processed_xlsforms:
-            logging.info(f'Converting {file_name}...')
-            questionnaire_fsh_lines = Fsh_questionnaire(data)            
-            questionnaire_terminology_fsh_lines = Fsh_terminology(data)
-            ## AT 15/11/2023: decided in Oct to (temporary) not use this feature until a proper use case for it has been identified. 
-            question_reference_codesystem_fsh_lines, code_tuple = create_fsh_question_reference_codesystem(data)
-            unique_codes.update(code_tuple)
-            pbar.update(1)
-            fsh_lines_list.append((file_name, questionnaire_fsh_lines.lines, questionnaire_terminology_fsh_lines.lines, data.short_name, data.version, data.lpds_healthboard_abbreviation, question_reference_codesystem_fsh_lines))
-            logging.info(f'Converted {file_name}...')
+    for xlsForm in tqdm(processed_xlsforms):
+        logging.info(f'Converting {xlsForm.file_name}...')
+        questionnaire_fsh_lines = Fsh_questionnaire(xlsForm.data)            
+        questionnaire_terminology_fsh_lines = Fsh_terminology(xlsForm.data)
+        ## AT 15/11/2023: decided in Oct to (temporary) not use this feature until a proper use case for it has been identified. 
+        question_reference_codesystem_fsh_lines, code_tuple = create_fsh_question_reference_codesystem(xlsForm.data)
+        unique_codes.update(code_tuple)
+        fsh_lines_list.append((xlsForm.file_name, questionnaire_fsh_lines.lines, questionnaire_terminology_fsh_lines.lines, xlsForm.data.short_name, xlsForm.data.version, xlsForm.data.lpds_healthboard_abbreviation, question_reference_codesystem_fsh_lines))
+        logging.info(f'Converted {xlsForm.file_name}...')
     
     ## AT 15/11/2023: decided in Oct to (temporary) not use this feature until a proper use case for it has been identified. 
     question_reference_valueset_fsh_lines = create_fsh_question_reference_valueset(unique_codes)
