@@ -13,7 +13,10 @@ def write_fsh_files(fsh_lines_list, output_folder, lpds_healthboard_abbreviation
             # Determine the base folder
             if lpds_healthboard_abbreviation:
                 # LPDS folder structure
-                base_folder = Path(output_folder) / "LPDS" / lpds_healthboard_abbreviation / "input" / "fsh"
+                if lpds_healthboard_abbreviation is 'LPDS':
+                    base_folder = Path(output_folder) / "LPDS" 
+                else:
+                    base_folder = Path(output_folder) / "LPDS" / lpds_healthboard_abbreviation / "input" / "fsh"
                 canonical_url = lpds_healthboard_abbreviation_dict.get(lpds_healthboard_abbreviation, "https://fhir.nhs.wales")
             else:
                 # DSCN folder structure
@@ -25,7 +28,8 @@ def write_fsh_files(fsh_lines_list, output_folder, lpds_healthboard_abbreviation
             terminology_folder = base_folder / "terminology"
 
             # Create folders if they don't exist
-            questionnaire_folder.mkdir(parents=True, exist_ok=True)
+            if not lpds_healthboard_abbreviation is 'LPDS':
+                questionnaire_folder.mkdir(parents=True, exist_ok=True)
             terminology_folder.mkdir(parents=True, exist_ok=True)
 
             # Write files
@@ -47,6 +51,9 @@ def write_fsh_files(fsh_lines_list, output_folder, lpds_healthboard_abbreviation
             logging.info(f'Saved {file_name}...')
 
 def write_to_file(lines: list, folder: Path, file_name: str, version: str) -> None:
+    if lines == []:
+        return
+    
     filepath = folder / (f"{file_name}-v{version}.fsh")
     
     mode = 'a' if filepath.exists() else 'w'
