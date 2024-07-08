@@ -35,6 +35,10 @@ Refer to the mapping table provided for details on how specific DSCN fields corr
 - `string_util.py`: Contains utility functions for string manipulation.
 - `xlsform_processor.py`: Processes XLSForm files and prepares them for conversion.
 - `xlsform_to_fsh_converter.py`: Converts the processed XLSForm data to FSH lines.
+- `Classes`: Folder with additional Python classes.
+    - `Fsh_questionnaire.py`: Converts XlsFormData into a FSH questionnaire.
+    - `Fsh_terminology.py`: Converts XlsFormData into FSH CodeSystems and ValueSets. 
+    - `XLS_Form.py`: Reads, processed and stores the XLS_Form. This is the main object used to represent the XLS form.
 
 ## Dependencies
 This script depends on Python 3.x and on the requirements listed in `requirements.txt`.

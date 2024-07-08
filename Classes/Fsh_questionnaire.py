@@ -1,12 +1,19 @@
 import re, logging
-from Classes.XlsFormData import XlsFormData
+from Classes.XLS_Form import XLS_Form
 import string_util as su
 import pandas as pd
 import terminology_util as tu
 
 class Fsh_questionnaire:
 
-    def __init__(self, data: XlsFormData):
+    def __init__(self, data: XLS_Form):
+        """
+        FSH representation of a questionnaire. Transforms a XLSForm into a FSH questionnaire.
+
+        Args:
+            data (XlsFormData): The data from an XLSForm.
+        """
+        
         self.data = data
 
         questionnaire_name = data.short_name.replace('-', '_')

@@ -1,6 +1,6 @@
 import string_util as su
 import terminology_util as tu
-from Classes.XlsFormData import XlsFormData
+from Classes.XLS_Form import XLS_Form
 
 class Fsh_terminology:
 
@@ -9,7 +9,14 @@ class Fsh_terminology:
     copyright_cs = "The information provided in the CodeSystem is part of a licensed PROM questionnaire form. The user must ensure they comply with the terms of the license set by the license holder for any PROM questionnaires used."
     copyright_vs = "The information provided in the ValueSet is part of a licensed PROM questionnaire form. The user must ensure they comply with the terms of the license set by the license holder for any PROM questionnaires used."
 
-    def __init__(self, data: XlsFormData) -> None:
+    def __init__(self, data: XLS_Form):
+        """
+        FSH representation of terminology systems. Transforms an XLSForm into FSH CodeSystems and FSH ValueSets.
+
+        Args:
+            data (XlsFormData): The data from an XLSForm.
+        """
+
         self.data = data
         self.lines = []
 

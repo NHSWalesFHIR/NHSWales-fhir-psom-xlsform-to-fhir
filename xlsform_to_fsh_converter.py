@@ -3,7 +3,6 @@ from typing import List
 import pandas as pd
 from tqdm import tqdm
 import string_util as su
-from Classes.XlsFormData import XlsFormData
 from Classes.Fsh_questionnaire import Fsh_questionnaire
 from Classes.Fsh_terminology import Fsh_terminology
 from Classes.XLS_Form import XLS_Form
@@ -16,17 +15,17 @@ def convert_to_fsh(processed_xlsforms: List[XLS_Form]):
 
     for xlsForm in tqdm(processed_xlsforms):
         logging.info(f'Converting {xlsForm.file_name}...')
-        questionnaire_fsh_lines = Fsh_questionnaire(xlsForm.data)            
-        questionnaire_terminology_fsh_lines = Fsh_terminology(xlsForm.data)
+        questionnaire_fsh_lines = Fsh_questionnaire(xlsForm)            
+        questionnaire_terminology_fsh_lines = Fsh_terminology(xlsForm)
         ## AT 15/11/2023: decided in Oct to (temporary) not use this feature until a proper use case for it has been identified. 
-        question_reference_codesystem_fsh_lines, code_tuple = create_fsh_question_reference_codesystem(xlsForm.data)
+        question_reference_codesystem_fsh_lines, code_tuple = create_fsh_question_reference_codesystem(xlsForm)
 
-        if xlsForm.data.lpds_healthboard_abbreviation is None:
+        if xlsForm.lpds_healthboard_abbreviation is None:
             unique_codes_DSCN.append(code_tuple)
-            fsh_lines_list_DSCN.append((xlsForm.file_name, questionnaire_fsh_lines.lines, questionnaire_terminology_fsh_lines.lines, xlsForm.data.short_name, xlsForm.data.version, xlsForm.data.lpds_healthboard_abbreviation, question_reference_codesystem_fsh_lines))
+            fsh_lines_list_DSCN.append((xlsForm.file_name, questionnaire_fsh_lines.lines, questionnaire_terminology_fsh_lines.lines, xlsForm.short_name, xlsForm.version, xlsForm.lpds_healthboard_abbreviation, question_reference_codesystem_fsh_lines))
         else:
             unique_codes_LPDS.append(code_tuple)
-            fsh_lines_list_LPDS.append((xlsForm.file_name, questionnaire_fsh_lines.lines, questionnaire_terminology_fsh_lines.lines, xlsForm.data.short_name, xlsForm.data.version, xlsForm.data.lpds_healthboard_abbreviation, question_reference_codesystem_fsh_lines))
+            fsh_lines_list_LPDS.append((xlsForm.file_name, questionnaire_fsh_lines.lines, questionnaire_terminology_fsh_lines.lines, xlsForm.short_name, xlsForm.version, xlsForm.lpds_healthboard_abbreviation, question_reference_codesystem_fsh_lines))
 
         logging.info(f'Converted {xlsForm.file_name}...')
     
@@ -39,7 +38,7 @@ def convert_to_fsh(processed_xlsforms: List[XLS_Form]):
 
 
 # AT 15/11/2023: decided in Oct to (temporary) not use this feature until a proper use case for it has been identified. 
-def create_fsh_question_reference_codesystem(data: XlsFormData) -> list:
+def create_fsh_question_reference_codesystem(data: XLS_Form) -> list:
    lines = []
    if data.lpds_healthboard_abbreviation:
        cs_name = (data.lpds_healthboard_abbreviation + data.short_name + 'QuestionReferenceCS').replace('-', '_')

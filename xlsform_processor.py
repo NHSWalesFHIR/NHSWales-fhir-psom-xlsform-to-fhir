@@ -10,9 +10,9 @@ def read_and_process_xlsform_files(XLS_Forms: List[XLS_Form]):
     for xlsForm in XLS_Forms:
         logging.info(f'Processing {xlsForm.file_name}...')
         try:
-            md_entry = {'short_name': xlsForm.data.short_name, 'short_id': xlsForm.data.short_id, 'version': xlsForm.data.version, 'title': xlsForm.data.title}
-            if xlsForm.data.lpds_healthboard_abbreviation is not None:
-                md_entry['lpds_healthboard_abbreviation'] = xlsForm.data.lpds_healthboard_abbreviation
+            md_entry = {'short_name': xlsForm.short_name, 'short_id': xlsForm.short_id, 'version': xlsForm.version, 'title': xlsForm.title}
+            if xlsForm.lpds_healthboard_abbreviation is not None:
+                md_entry['lpds_healthboard_abbreviation'] = xlsForm.lpds_healthboard_abbreviation
             processed_xlsforms_md_entries.append(md_entry)
 
         except Exception as e:
