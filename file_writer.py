@@ -13,7 +13,7 @@ def write_fsh_files(fsh_lines_list, output_folder, lpds_healthboard_abbreviation
             # Determine the base folder
             if lpds_healthboard_abbreviation:
                 # LPDS folder structure
-                if lpds_healthboard_abbreviation is 'LPDS':
+                if lpds_healthboard_abbreviation == 'LPDS':
                     base_folder = Path(output_folder) / "LPDS" 
                 else:
                     base_folder = Path(output_folder) / "LPDS" / lpds_healthboard_abbreviation / "input" / "fsh"
@@ -28,7 +28,7 @@ def write_fsh_files(fsh_lines_list, output_folder, lpds_healthboard_abbreviation
             terminology_folder = base_folder / "terminology"
 
             # Create folders if they don't exist
-            if not lpds_healthboard_abbreviation is 'LPDS':
+            if lpds_healthboard_abbreviation != 'LPDS':
                 questionnaire_folder.mkdir(parents=True, exist_ok=True)
             terminology_folder.mkdir(parents=True, exist_ok=True)
 
