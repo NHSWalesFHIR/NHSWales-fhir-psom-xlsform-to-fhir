@@ -16,6 +16,10 @@ class Fsh_questionnaire:
         
         self.data = data
 
+        # Check if 'sensitive' column exists in the survey sheet and warn if missing
+        if 'sensitive' not in data.df_survey.columns:
+            logging.warning(f"{data.file_name}: 'sensitive' column not found in survey sheet. Questions will not be marked as sensitive/confidential. Add a 'sensitive' column with values like 'true', '1', 'yes' to mark sensitive questions.")
+
         questionnaire_name = data.short_name.replace('-', '_')
         # pattern to select 'select  one' and 'select one' and 'selecte one ' 
         # TODO check if regex is the way to go
@@ -60,7 +64,8 @@ class Fsh_questionnaire:
             if row['type'] in ['text', 'decimal', 'integer', 'begin group', 'begin_group'] or self.select_one_pattern.match(row['type']):
                 self.lines.append(f'{self.indent}* item[+]')
 
-            if  row['sensitive'] in ['1', 'true', 'y', 'yes'] or row['sensitive'] == 1 :
+            # Check if 'sensitive' column exists and has a truthy value
+            if 'sensitive' in row and (row['sensitive'] in ['1', 'true', 'y', 'yes'] or row['sensitive'] == 1):
                 if not self.extension_added:  # If no extension has been added yet
                     self.lines.append(f'{self.indent}  * extension[0].url = "http://hl7.org/fhir/uv/security-label-ds4p/StructureDefinition/extension-inline-sec-label"')
                     self.extension_added = True  # Set to True because an extension has been added
