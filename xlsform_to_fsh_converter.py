@@ -40,25 +40,35 @@ def create_fsh_question_reference_codesystem(data: XLS_Form) -> list:
    if data.lpds_healthboard_abbreviation:
        cs_name = ('LPDS' + data.lpds_healthboard_abbreviation + data.short_name + 'QuestionReferenceCS').replace('-', '_')
        cs_id = su.make_fhir_compliant((data.lpds_healthboard_abbreviation + '-' + data.short_name + '-' + 'QuestionReferenceCS'))
-       #copyright = "TO ADD"
+       lines_cs = [
+           f'CodeSystem: {cs_id}',
+           f'Id: {cs_id}',
+           f'Title: "{data.short_name} Question Reference CodeSystem"',
+           f'Description: "Question Reference codes for the questions in PSOM Questionnaire \'{data.title}\'."',
+           f'* ^name = "{cs_name}"',
+           f'* ^version = "{data.version}"',
+           f'* ^status = #draft',
+           f'* ^publisher = "{data.lpds_healthboard_abbreviation}"',
+           f'* ^caseSensitive = true',
+           '',
+       ]
    else:
        cs_name = (data.short_name + 'QuestionReferenceCS').replace('-', '_')
        cs_id = su.make_fhir_compliant((data.short_name + '-' + 'QuestionReferenceCS'))
        copyright = "The information provided in this CodeSystem must not be used to re-produce a PROM questionnaire form, this would result in a breach of copyright. The user must ensure they comply with the terms of the license set by the license holder for any PROM questionnaires used."
-
-   lines_cs = [
-       f'CodeSystem: {cs_id}',
-       f'Id: {cs_id}',
-       f'Title: "{data.short_name} Question Reference CodeSystem"',
-       f'Description: "Question Reference codes for the questions in PSOM Questionnaire \'{data.title}\'."',
-       f'* ^name = "{cs_name}"',
-       f'* ^version = "{data.version}"',
-       f'* ^status = #draft',
-       f'* ^copyright = "{copyright}"',
-       f'* ^publisher = "{data.lpds_healthboard_abbreviation or "NHS Wales"}"',
-       f'* ^caseSensitive = true',
-       '',
-   ]
+       lines_cs = [
+           f'CodeSystem: {cs_id}',
+           f'Id: {cs_id}',
+           f'Title: "{data.short_name} Question Reference CodeSystem"',
+           f'Description: "Question Reference codes for the questions in PSOM Questionnaire \'{data.title}\'."',
+           f'* ^name = "{cs_name}"',
+           f'* ^version = "{data.version}"',
+           f'* ^status = #draft',
+           f'* ^copyright = "{copyright}"',
+           f'* ^publisher = "NHS Wales"',
+           f'* ^caseSensitive = true',
+           '',
+       ]
    seen = [] # Set to keep track of seen (name, label) pairs
 
    for _, row in data.df_survey.iterrows():
