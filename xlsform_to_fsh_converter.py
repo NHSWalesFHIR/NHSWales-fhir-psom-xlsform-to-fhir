@@ -34,8 +34,9 @@ def convert_to_fsh(processed_xlsforms: List[XLS_Form]):
     question_reference_codesystem_lpds = Fsh_question_reference_codesystem(question_codes_LPDS, is_lpds=True)
     
     # Add the consolidated CodeSystems to the lists
-    fsh_lines_list_DSCN.append(([], [], [], 'QuestionReferenceCS', '0.0.1', [], question_reference_codesystem_dscn.lines))
-    fsh_lines_list_LPDS.append(([], [], [], 'QuestionReferenceCS', '0.0.1', 'LPDS', question_reference_codesystem_lpds.lines))
+    # Note: Version is ignored for QuestionReferenceCS files as they use date-based versioning internally
+    fsh_lines_list_DSCN.append(([], [], [], 'QuestionReferenceCS', None, [], question_reference_codesystem_dscn.lines))
+    fsh_lines_list_LPDS.append(([], [], [], 'LPDSQuestionReferenceCS', None, 'LPDS', question_reference_codesystem_lpds.lines))
     
     return fsh_lines_list_DSCN, fsh_lines_list_LPDS
 

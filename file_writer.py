@@ -55,8 +55,10 @@ def write_to_file(lines: list, folder: Path, file_name: str, version: str) -> No
     if lines == []:
         return
     
-    # Remove version from QuestionReference files
-    if file_name == "QuestionReferenceCS":
+    # Remove version from QuestionReference files (both DSCN and LPDS variants)
+    if file_name in ["QuestionReferenceCS", "LPDSQuestionReferenceCS"]:
+        filepath = folder / f"{file_name}.fsh"
+    elif version is None:
         filepath = folder / f"{file_name}.fsh"
     else:
         filepath = folder / f"{file_name}-v{version}.fsh"
