@@ -1,9 +1,11 @@
-import re, os, sys, logging, shutil, traceback, subprocess
-from pathlib import Path
-import xlsform_processor as xls
-import xlsform_to_fsh_converter as fsh
+import logging
+import os
+import subprocess
 import file_writer as fw
 import setup
+import xlsform_processor as xls
+import xlsform_to_fsh_converter as fsh
+from pathlib import Path
 
 __version__ = '1.0.0-rc2'
 input_folder = 'input/'
@@ -14,7 +16,6 @@ dscn_folder = Path(output_folder) / "DSCN"
 lpds_folder = Path(output_folder) / "LPDS"
 processed_xlsforms = []
 processed_xlsforms_md_overview = []
-#fsh_lines_list = []
 lpds_healthboard_abbreviation_dict = {
     "ABU": "https://fhir.abuhb.nhs.wales",
     "BCU": "https://fhir.bcuhb.nhs.wales",
@@ -35,13 +36,14 @@ print('***************************************************')
 print('Step 0 - Setup and validation')
 setup.delete_output_folder_contents(output_folder)
 setup.initiate_logging(output_folder)
-xls.convert_to_xform_and_validate(input_folder, output_folder)
+
+XLS_Forms = xls.read_xlsforms(input_folder, lpds_healthboard_abbreviation_dict)
 
 print('Step 1 - Parse XLSForms')
-processed_xlsforms, processed_xlsforms_md_overview = xls.process_xlsform_files(input_folder, lpds_healthboard_abbreviation_dict)
+processed_xlsforms, processed_xlsforms_md_overview = xls.read_and_process_xlsform_files(XLS_Forms)
 
 print('Step 2 - Convert to FSH lines')
-fsh_lines_list_DSCN, fsh_lines_list_LPDS = fsh.convert_to_fsh(processed_xlsforms)
+fsh_lines_list_DSCN, fsh_lines_list_LPDS  = fsh.convert_to_fsh(processed_xlsforms)
 
 print('Step 3 - Writing to FSH files')
 fw.write_fsh_files(fsh_lines_list_DSCN, output_folder, lpds_healthboard_abbreviation_dict)
