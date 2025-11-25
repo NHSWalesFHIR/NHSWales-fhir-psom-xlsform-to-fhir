@@ -18,13 +18,21 @@ processed_xlsforms = []
 processed_xlsforms_md_overview = []
 lpds_healthboard_abbreviation_dict = {
     "ABU": "https://fhir.abuhb.nhs.wales",
+    "7A6": "https://fhir.abuhb.nhs.wales",
     "BCU": "https://fhir.bcuhb.nhs.wales",
+    "7A1": "https://fhir.bcuhb.nhs.wales",
     "CAV": "https://fhir.cavuhb.nhs.wales",
+    "7A4": "https://fhir.cavuhb.nhs.wales",
     "CTM": "https://fhir.ctmuhb.nhs.wales",
+    "7A5": "https://fhir.ctmuhb.nhs.wales",
     "HDU": "https://fhir.hduhb.nhs.wales",
+    "7A2": "https://fhir.hduhb.nhs.wales",
     "PTH": "https://fhir.pthb.nhs.wales",
+    "7A7": "https://fhir.pthb.nhs.wales",
     "SBU": "https://fhir.sbuhb.nhs.wales",
-    "VUH": "https://fhir.vunhst.nhs.wales"
+    "7A3": "https://fhir.sbuhb.nhs.wales",
+    "VUH": "https://fhir.vunhst.nhs.wales",
+    "RQF": "https://fhir.vunhst.nhs.wales"
 }
 
 print('***************************************************')
