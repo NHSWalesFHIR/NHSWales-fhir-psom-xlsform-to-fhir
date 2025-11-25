@@ -45,7 +45,7 @@ class Fsh_terminology:
         if self.data.lpds_healthboard_abbreviation:
             publisher = self.data.lpds_healthboard_abbreviation.replace('-', '')
 
-            name = self.data.lpds_healthboard_abbreviation
+            name = 'LPDS' + self.data.lpds_healthboard_abbreviation
 
             if cs_id != "":
                 copyright = self.copyright_vs_lpds

@@ -28,7 +28,7 @@ class Fsh_questionnaire:
         if data.lpds_healthboard_abbreviation:
             clean_abbreviation = data.lpds_healthboard_abbreviation.replace('-', '')
             instance_id = f'{data.lpds_healthboard_abbreviation}-{data.short_name}'
-            name = f'{data.lpds_healthboard_abbreviation}{questionnaire_name}'
+            name = f'LPDS{data.lpds_healthboard_abbreviation}{questionnaire_name}'
             copyright = "The information provided in this Questionnaire may not be used to re-produce a PROM questionnaire form, this may result in a breach of copyright. The user must ensure they comply with the terms of the license set by the license holder for any PROM questionnaires used."
             publisher = clean_abbreviation
 

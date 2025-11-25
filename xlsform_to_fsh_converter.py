@@ -38,7 +38,7 @@ def convert_to_fsh(processed_xlsforms: List[XLS_Form]):
 def create_fsh_question_reference_codesystem(data: XLS_Form) -> list:
    lines = []
    if data.lpds_healthboard_abbreviation:
-       cs_name = (data.lpds_healthboard_abbreviation + data.short_name + 'QuestionReferenceCS').replace('-', '_')
+       cs_name = ('LPDS' + data.lpds_healthboard_abbreviation + data.short_name + 'QuestionReferenceCS').replace('-', '_')
        cs_id = su.make_fhir_compliant((data.lpds_healthboard_abbreviation + '-' + data.short_name + '-' + 'QuestionReferenceCS'))
        #copyright = "TO ADD"
    else:
