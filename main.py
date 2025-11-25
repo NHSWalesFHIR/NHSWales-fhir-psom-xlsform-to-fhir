@@ -7,7 +7,7 @@ import xlsform_processor as xls
 import xlsform_to_fsh_converter as fsh
 from pathlib import Path
 
-__version__ = '1.0.0-rc2'
+__version__ = '1.0.0-rc5'
 input_folder = 'input/'
 output_folder = 'output/'
 terminology_folder = 'input/fsh/terminology'

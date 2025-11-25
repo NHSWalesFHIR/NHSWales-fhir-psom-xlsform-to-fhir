@@ -54,7 +54,11 @@ def write_to_file(lines: list, folder: Path, file_name: str, version: str) -> No
     if lines == []:
         return
     
-    filepath = folder / (f"{file_name}-v{version}.fsh")
+    # Remove version from QuestionReference files
+    if file_name == "QuestionReferenceCS":
+        filepath = folder / f"{file_name}.fsh"
+    else:
+        filepath = folder / f"{file_name}-v{version}.fsh"
     
     mode = 'a' if filepath.exists() else 'w'
     with filepath.open(mode, encoding='utf-8') as f:

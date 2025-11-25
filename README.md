@@ -38,6 +38,7 @@ Refer to the mapping table provided for details on how specific DSCN fields corr
 - `Classes`: Folder with additional Python classes.
     - `Fsh_questionnaire.py`: Converts XlsFormData into a FSH questionnaire.
     - `Fsh_terminology.py`: Converts XlsFormData into FSH CodeSystems and ValueSets. 
+    - `Fsh_question_reference.py`: Converts XlsFormData into FSH QuestionReference CodeSystems and consolidated ValueSets.
     - `XLS_Form.py`: Reads, processed and stores the XLS_Form. This is the main object used to represent the XLS form.
 
 ## Dependencies
