@@ -22,6 +22,7 @@ The script operates using designated `input/` and `output/` directories, executi
 This tool supports the conversion of the following XLSForm elements:
 * Text
 * Select_one
+* Select_multiple ⚠️ **WARNING: This feature is provided for future support and should be used with caution. Please validate thoroughly before production use.**
 * Decimal
 * Integer
 * Begin group

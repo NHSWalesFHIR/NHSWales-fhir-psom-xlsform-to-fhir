@@ -9,7 +9,8 @@ LPDS_PREFIX = "LPDS"
 DSCN_PREFIX = "DataStandardsWales"
 
 # URLs
-QUESTION_REFERENCE_CS_URL = "https://fhir.nhs.wales/CodeSystem/QuestionReferenceCS"
+QUESTION_REFERENCE_CS_URL_DSCN = "https://fhir.nhs.wales/CodeSystem/QuestionReferenceCS"
+QUESTION_REFERENCE_CS_URL_LPDS = "https://fhir.nhs.wales/CodeSystem/LPDSQuestionReferenceCS"
 NHS_WALES_BASE_URL = "https://fhir.nhs.wales"
 
 # Extension URLs

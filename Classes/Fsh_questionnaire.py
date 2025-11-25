@@ -4,7 +4,8 @@ import string_util as su
 import pandas as pd
 import terminology_util as tu
 from constants import (
-    QUESTION_REFERENCE_CS_URL,
+    QUESTION_REFERENCE_CS_URL_DSCN,
+    QUESTION_REFERENCE_CS_URL_LPDS,
     NHS_WALES_PUBLISHER,
     COPYRIGHT_QUESTIONNAIRE_LPDS,
     COPYRIGHT_QUESTIONNAIRE_DSCN,
@@ -30,9 +31,24 @@ class Fsh_questionnaire:
             logging.warning(f"{data.file_name}: 'sensitive' column not found in survey sheet. Questions will not be marked as sensitive/confidential. Add a 'sensitive' column with values like 'true', '1', 'yes' to mark sensitive questions.")
 
         questionnaire_name = data.short_name.replace('-', '_')
-        # pattern to select 'select  one' and 'select one' and 'selecte one ' 
-        # TODO check if regex is the way to go
-        self.select_one_pattern = re.compile("select[_ ]one[_ ]?", re.IGNORECASE)
+        
+        # Robust patterns for XLSForm field types with comprehensive matching
+        # Handles variations in spacing, underscores, and common typos
+        self.select_one_pattern = re.compile(r"select[_\s]*one[_\s]*", re.IGNORECASE)
+        self.select_multiple_pattern = re.compile(r"select[_\s]*multiple[_\s]*", re.IGNORECASE)
+        
+        # Additional patterns for other XLSForm types that might be encountered
+        self.group_patterns = {
+            'begin_group': re.compile(r"begin[_\s]*group", re.IGNORECASE),
+            'end_group': re.compile(r"end[_\s]*group", re.IGNORECASE)
+        }
+        
+        # Validation patterns for known field types in XLSForm spec
+        self.known_types = {
+            'text', 'decimal', 'integer', 'note', 'calculate', 'hidden',
+            'date', 'time', 'datetime', 'geopoint', 'geotrace', 'geoshape',
+            'barcode', 'acknowledge', 'image', 'audio', 'video', 'file'
+        }
 
         if data.lpds_healthboard_abbreviation:
             clean_abbreviation = data.lpds_healthboard_abbreviation.replace('-', '')
@@ -67,34 +83,52 @@ class Fsh_questionnaire:
             self.extension_added = False
 
             if pd.isna(row["format"]) and \
-            (row['type'] in ['text', 'decimal', 'integer'] or self.select_one_pattern.match(row['type'])):
+                (row['type'] in ['text', 'decimal', 'integer'] or self.select_one_pattern.match(row['type']) or self.select_multiple_pattern.match(row['type'])):
                 logging.warning(f"Warning processing {data.short_name}: found no format for {row['name']}. ")
 
-            if row['type'] in ['text', 'decimal', 'integer', 'begin group', 'begin_group'] or self.select_one_pattern.match(row['type']):
+            # Determine field type using improved pattern matching
+            field_type = self._classify_field_type(row['type'])
+            
+            if field_type in ['text', 'decimal', 'integer', 'select_one', 'select_multiple', 'begin_group']:
                 self.lines.append(f'{self.indent}* item[+]')
 
             # Check if 'sensitive' column exists and has a truthy value
-            if 'sensitive' in row and (row['sensitive'] in ['1', 'true', 'y', 'yes'] or row['sensitive'] == 1):
-                if not self.extension_added:  # If no extension has been added yet
-                    self.lines.append(f'{self.indent}  * extension[0].url = "{SECURITY_LABEL_EXTENSION_URL}"')
-                    self.extension_added = True  # Set to True because an extension has been added
-                else:
-                    self.lines.append(f'{self.indent}  * extension[+].url = "{SECURITY_LABEL_EXTENSION_URL}"')
-                self.lines.append(f'{self.indent}  * extension[=].valueCoding = http://terminology.hl7.org/CodeSystem/v3-ActCode#PDS "patient default information sensitivity"')
+            if 'sensitive' in row and self._is_sensitive_field(row['sensitive']):
+                self._add_security_extension()
 
-            if row['type'] == 'begin group' or row['type'] == 'begin_group':
+            # Handle different field types using the classified type
+            if field_type == 'begin_group':
                 self.handle_group(row)
-            elif row['type'] == 'text':
+            elif field_type == 'text':
                 self.handle_question(row, 'string')
-            elif row['type'] in ['decimal', 'integer']:
-                self.handle_question(row, row['type'])
-            elif self.select_one_pattern.match(row['type']):
+            elif field_type in ['decimal', 'integer']:
+                self.handle_question(row, field_type)
+            elif field_type == 'select_one':
                 self.handle_question(row, 'choice', True)
-            elif row['type'] == 'end group' or row['type'] == 'end_group':
+            elif field_type == 'select_multiple':
+                # Enhanced warning for select_multiple usage
+                console_warning = (
+                    f"⚠️  WARNING: select_multiple field type detected for '{row['name']}' in {data.short_name}. "
+                    f"This feature is EXPERIMENTAL and added for future support only. "
+                )
+                log_warning = (
+                    f"WARNING: select_multiple field type detected for '{row['name']}' in {data.short_name}. "
+                    f"This feature is EXPERIMENTAL and added for future support only. "
+                )
+                print(f"\n{console_warning}\n")
+                logging.warning(log_warning)
+                self.handle_question(row, 'choice', True, True)  # True for repeats
+            elif field_type == 'end_group':
                 self.indent_level -= 1
             else:
-                print('Encountered not supported type found in' + data.short_name + '   ' + row['name'] )
-                logging.error(f"Error processing {data.short_name}: found unsupported datatype for {row['name']}. {row['type']} is not supported (yet). ")
+                # Enhanced error reporting with suggestions
+                error_msg = f"Unsupported field type '{row['type']}' for field '{row['name']}' in {data.short_name}"
+                suggestion = self._suggest_type_correction(row['type'])
+                if suggestion:
+                    error_msg += f". Did you mean '{suggestion}'?"
+                
+                print(f'Encountered unsupported type: {error_msg}')
+                logging.error(f"Error processing {data.short_name}: {error_msg}")
 
     def handle_group(self, row: pd.Series):
         self.lines.append(f'{self.indent}  * linkId = "{row["name"]}"')
@@ -103,7 +137,7 @@ class Fsh_questionnaire:
         self.indent_level += 1
         self.lines.append('')
 
-    def handle_question(self, row : pd.Series, type: str, anwerValueset: bool = False):
+    def handle_question(self, row : pd.Series, type: str, anwerValueset: bool = False, repeats: bool = False):
         if not self.extension_added:  
             self.lines.append(f'{self.indent}  * extension[0].url = "{ENTRY_FORMAT_EXTENSION_URL}"')
             self.extension_added = True  
@@ -111,14 +145,116 @@ class Fsh_questionnaire:
             self.lines.append(f'{self.indent}  * extension[+].url = "{ENTRY_FORMAT_EXTENSION_URL}"')
         self.lines.append(f'{self.indent}  * extension[=].valueString = "{row["format"]}"')
         self.lines.append(f'{self.indent}  * linkId = "{row["name"]}"')
-        self.lines.append(f'{self.indent}  * code = {QUESTION_REFERENCE_CS_URL}#{row["name"]}')
+        question_ref_url = QUESTION_REFERENCE_CS_URL_LPDS if self.data.lpds_healthboard_abbreviation else QUESTION_REFERENCE_CS_URL_DSCN
+        self.lines.append(f'{self.indent}  * code = {question_ref_url}#{row["name"]}')
         self.lines.append(f'{self.indent}  * text = "{su.escape_quotes(row["label"])}"')
         self.lines.append(f'{self.indent}  * type = #{type}')
+        
+        if repeats:
+            self.lines.append(f'{self.indent}  * repeats = true')
 
         if anwerValueset:
-            ValueSetName  = self.select_one_pattern.sub('', row["type"])
+            # Handle both select_one and select_multiple patterns
+            if self.select_one_pattern.match(row["type"]):
+                ValueSetName = self.select_one_pattern.sub('', row["type"])
+            elif self.select_multiple_pattern.match(row["type"]):
+                ValueSetName = self.select_multiple_pattern.sub('', row["type"])
+            else:
+                ValueSetName = row["type"]  # fallback
+            
             ValueSetId = tu.generate_vs_or_cs_id(self.data.short_name, ValueSetName, 'VS', self.data.lpds_healthboard_abbreviation)
             self.lines.append(f'{self.indent}  * answerValueSet = Canonical({ValueSetId})')
 
         self.lines.append('')
+
+    def _classify_field_type(self, field_type: str) -> str:
+        """
+        Classify XLSForm field types using robust pattern matching.
+        
+        Args:
+            field_type (str): The raw field type from XLSForm
+            
+        Returns:
+            str: Standardized field type or 'unknown'
+        """
+        if not field_type or pd.isna(field_type):
+            return 'unknown'
+        
+        field_type = str(field_type).strip()
+        
+        # Check for exact matches first
+        if field_type.lower() in self.known_types:
+            return field_type.lower()
+        
+        # Check group patterns
+        if self.group_patterns['begin_group'].match(field_type):
+            return 'begin_group'
+        if self.group_patterns['end_group'].match(field_type):
+            return 'end_group'
+            
+        # Check select patterns
+        if self.select_one_pattern.match(field_type):
+            return 'select_one'
+        if self.select_multiple_pattern.match(field_type):
+            return 'select_multiple'
+            
+        return 'unknown'
+
+    def _is_sensitive_field(self, sensitive_value) -> bool:
+        """
+        Check if a field should be marked as sensitive/confidential.
+        
+        Args:
+            sensitive_value: Value from the 'sensitive' column
+            
+        Returns:
+            bool: True if the field should be marked as sensitive
+        """
+        if pd.isna(sensitive_value):
+            return False
+        
+        # Convert to string and check various truthy values
+        str_value = str(sensitive_value).lower().strip()
+        return str_value in ['1', 'true', 'y', 'yes', 't'] or sensitive_value == 1
+
+    def _add_security_extension(self):
+        """Add security labeling extension for sensitive fields."""
+        if not self.extension_added:
+            self.lines.append(f'{self.indent}  * extension[0].url = "{SECURITY_LABEL_EXTENSION_URL}"')
+            self.extension_added = True
+        else:
+            self.lines.append(f'{self.indent}  * extension[+].url = "{SECURITY_LABEL_EXTENSION_URL}"')
+        self.lines.append(f'{self.indent}  * extension[=].valueCoding = http://terminology.hl7.org/CodeSystem/v3-ActCode#PDS "patient default information sensitivity"')
+
+    def _suggest_type_correction(self, field_type: str) -> str:
+        """
+        Suggest a correction for unsupported field types based on similarity.
+        
+        Args:
+            field_type (str): The unsupported field type
+            
+        Returns:
+            str: Suggested correction or None
+        """
+        if not field_type:
+            return None
+            
+        field_type_lower = field_type.lower().strip()
+        
+        # Common typos and variations
+        suggestions = {
+            'selectone': 'select_one',
+            'select one': 'select_one',
+            'selectmultiple': 'select_multiple',
+            'select multiple': 'select_multiple',
+            'begingroup': 'begin_group',
+            'begin group': 'begin_group',
+            'endgroup': 'end_group',
+            'end group': 'end_group',
+            'int': 'integer',
+            'float': 'decimal',
+            'string': 'text',
+        }
+        
+        return suggestions.get(field_type_lower)
    

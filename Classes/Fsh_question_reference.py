@@ -3,7 +3,8 @@ import string_util as su
 from datetime import datetime
 from Classes.XLS_Form import XLS_Form
 from constants import (
-    QUESTION_REFERENCE_CS_URL,
+    QUESTION_REFERENCE_CS_URL_DSCN,
+    QUESTION_REFERENCE_CS_URL_LPDS,
     NHS_WALES_PUBLISHER,
     COPYRIGHT_QUESTION_REFERENCE_DSCN,
     FHIR_STATUS_DRAFT
@@ -60,7 +61,8 @@ class Fsh_question_reference_codesystem:
         
         if self.is_lpds:
             cs_name = "LPDSQuestionReferenceCS"
-            cs_id = "QuestionReferenceCS"
+            cs_id = "LPDSQuestionReferenceCS"
+            cs_url = QUESTION_REFERENCE_CS_URL_LPDS
             title = "LPDS Question Reference CodeSystem"
             description = "Question Reference codes for the questions in LPDS PROM Questionnaires."
             publisher = NHS_WALES_PUBLISHER
@@ -69,6 +71,7 @@ class Fsh_question_reference_codesystem:
         else:
             cs_name = "DataStandardsWalesQuestionReferenceCS"
             cs_id = "QuestionReferenceCS"
+            cs_url = QUESTION_REFERENCE_CS_URL_DSCN
             title = "Question Reference CodeSystem"
             description = "Question Reference codes for the questions in PSOM Questionnaires."
             publisher = NHS_WALES_PUBLISHER
@@ -85,7 +88,7 @@ class Fsh_question_reference_codesystem:
             f'Id: {cs_id}',
             f'Title: "{title}"',
             f'Description: "{description}"',
-            f'* ^url = "{QUESTION_REFERENCE_CS_URL}"',
+            f'* ^url = "{cs_url}"',
             f'* ^name = "{cs_name}"',
             f'* ^version = "{current_date}"',
             f'* ^status = {FHIR_STATUS_DRAFT}',
