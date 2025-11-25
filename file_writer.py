@@ -1,6 +1,7 @@
 from pathlib import Path
 from tqdm import tqdm
 import logging
+from constants import NHS_WALES_BASE_URL
 
 def write_fsh_files(fsh_lines_list, output_folder, lpds_healthboard_abbreviation_dict):
     with tqdm(total=len(fsh_lines_list), desc="Writing FSH to files", dynamic_ncols=True) as pbar:
@@ -17,11 +18,11 @@ def write_fsh_files(fsh_lines_list, output_folder, lpds_healthboard_abbreviation
                     base_folder = Path(output_folder) / "LPDS" 
                 else:
                     base_folder = Path(output_folder) / "LPDS" / lpds_healthboard_abbreviation / "input" / "fsh"
-                canonical_url = lpds_healthboard_abbreviation_dict.get(lpds_healthboard_abbreviation, "https://fhir.nhs.wales")
+                canonical_url = lpds_healthboard_abbreviation_dict.get(lpds_healthboard_abbreviation, NHS_WALES_BASE_URL)
             else:
                 # DSCN folder structure
                 base_folder = Path(output_folder) / "DSCN" / "input" / "fsh"
-                canonical_url = "https://fhir.nhs.wales"
+                canonical_url = NHS_WALES_BASE_URL
 
             # Define questionnaire and terminology folders
             questionnaire_folder = base_folder / "questionnaires"

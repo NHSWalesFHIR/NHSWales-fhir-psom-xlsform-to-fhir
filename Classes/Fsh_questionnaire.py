@@ -3,6 +3,15 @@ from Classes.XLS_Form import XLS_Form
 import string_util as su
 import pandas as pd
 import terminology_util as tu
+from constants import (
+    QUESTION_REFERENCE_CS_URL,
+    NHS_WALES_PUBLISHER,
+    COPYRIGHT_QUESTIONNAIRE_LPDS,
+    COPYRIGHT_QUESTIONNAIRE_DSCN,
+    ENTRY_FORMAT_EXTENSION_URL,
+    SECURITY_LABEL_EXTENSION_URL,
+    FHIR_STATUS_DRAFT
+)
 
 class Fsh_questionnaire:
 
@@ -35,8 +44,8 @@ class Fsh_questionnaire:
         else:
             instance_id = f'DataStandardsWales-PSOM-{data.short_name}'
             name = f'DataStandardsWalesPSOM{questionnaire_name}'
-            copyright = "The information provided in this Questionnaire must not be used to re-produce a PROM questionnaire form, this would result in a breach of copyright. The user must ensure they comply with the terms of the license set by the license holder for any PROM questionnaires used." 
-            publisher = "NHS Wales"
+            copyright = COPYRIGHT_QUESTIONNAIRE_DSCN
+            publisher = NHS_WALES_PUBLISHER
 
         self.lines = [
             f'Instance: {instance_id}',
@@ -45,7 +54,7 @@ class Fsh_questionnaire:
             f'* title = "{data.title}"',
             f'* name = "{name}"',
             f'* version = "{data.version}"',
-            f'* status = #draft',
+            f'* status = {FHIR_STATUS_DRAFT}',
             f'* publisher = "{publisher}"',
             f'* description = "PSOM Questionnaire: {data.title}."',
             f'* copyright = "{copyright}"',
@@ -67,10 +76,10 @@ class Fsh_questionnaire:
             # Check if 'sensitive' column exists and has a truthy value
             if 'sensitive' in row and (row['sensitive'] in ['1', 'true', 'y', 'yes'] or row['sensitive'] == 1):
                 if not self.extension_added:  # If no extension has been added yet
-                    self.lines.append(f'{self.indent}  * extension[0].url = "http://hl7.org/fhir/uv/security-label-ds4p/StructureDefinition/extension-inline-sec-label"')
+                    self.lines.append(f'{self.indent}  * extension[0].url = "{SECURITY_LABEL_EXTENSION_URL}"')
                     self.extension_added = True  # Set to True because an extension has been added
                 else:
-                    self.lines.append(f'{self.indent}  * extension[+].url = "http://hl7.org/fhir/uv/security-label-ds4p/StructureDefinition/extension-inline-sec-label"')
+                    self.lines.append(f'{self.indent}  * extension[+].url = "{SECURITY_LABEL_EXTENSION_URL}"')
                 self.lines.append(f'{self.indent}  * extension[=].valueCoding = http://terminology.hl7.org/CodeSystem/v3-ActCode#PDS "patient default information sensitivity"')
 
             if row['type'] == 'begin group' or row['type'] == 'begin_group':
@@ -96,13 +105,13 @@ class Fsh_questionnaire:
 
     def handle_question(self, row : pd.Series, type: str, anwerValueset: bool = False):
         if not self.extension_added:  
-            self.lines.append(f'{self.indent}  * extension[0].url = "http://hl7.org/fhir/StructureDefinition/entryFormat"')
+            self.lines.append(f'{self.indent}  * extension[0].url = "{ENTRY_FORMAT_EXTENSION_URL}"')
             self.extension_added = True  
         else:
-            self.lines.append(f'{self.indent}  * extension[+].url = "http://hl7.org/fhir/StructureDefinition/entryFormat"')
+            self.lines.append(f'{self.indent}  * extension[+].url = "{ENTRY_FORMAT_EXTENSION_URL}"')
         self.lines.append(f'{self.indent}  * extension[=].valueString = "{row["format"]}"')
         self.lines.append(f'{self.indent}  * linkId = "{row["name"]}"')
-        self.lines.append(f'{self.indent}  * code = QuestionReferenceCS#{row["name"]}')
+        self.lines.append(f'{self.indent}  * code = {QUESTION_REFERENCE_CS_URL}#{row["name"]}')
         self.lines.append(f'{self.indent}  * text = "{su.escape_quotes(row["label"])}"')
         self.lines.append(f'{self.indent}  * type = #{type}')
 

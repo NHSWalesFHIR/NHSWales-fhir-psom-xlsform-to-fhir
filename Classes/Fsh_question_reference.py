@@ -2,6 +2,12 @@ import pandas as pd
 import string_util as su
 from datetime import datetime
 from Classes.XLS_Form import XLS_Form
+from constants import (
+    QUESTION_REFERENCE_CS_URL,
+    NHS_WALES_PUBLISHER,
+    COPYRIGHT_QUESTION_REFERENCE_DSCN,
+    FHIR_STATUS_DRAFT
+)
 
 class Fsh_question_reference:
 
@@ -57,7 +63,7 @@ class Fsh_question_reference_codesystem:
             cs_id = "QuestionReferenceCS"
             title = "LPDS Question Reference CodeSystem"
             description = "Question Reference codes for the questions in LPDS PROM Questionnaires."
-            publisher = "NHS Wales"
+            publisher = NHS_WALES_PUBLISHER
             # No copyright for LPDS forms
             copyright_line = []
         else:
@@ -65,9 +71,9 @@ class Fsh_question_reference_codesystem:
             cs_id = "QuestionReferenceCS"
             title = "Question Reference CodeSystem"
             description = "Question Reference codes for the questions in PSOM Questionnaires."
-            publisher = "NHS Wales"
+            publisher = NHS_WALES_PUBLISHER
             # Include copyright for DSCN forms
-            copyright = "The information provided in this CodeSystem must not be used to re-produce a PROM questionnaire form, this would result in a breach of copyright. The user must ensure they comply with the terms of the license set by the license holder for any PROM questionnaires used."
+            copyright = COPYRIGHT_QUESTION_REFERENCE_DSCN
             copyright_line = [f'* ^copyright = "{copyright}"']
 
         # Generate current date in YYYYMMDD format
@@ -79,10 +85,10 @@ class Fsh_question_reference_codesystem:
             f'Id: {cs_id}',
             f'Title: "{title}"',
             f'Description: "{description}"',
-            f'* ^url = "https://fhir.nhs.wales/CodeSystem/QuestionReferenceCS"',
+            f'* ^url = "{QUESTION_REFERENCE_CS_URL}"',
             f'* ^name = "{cs_name}"',
             f'* ^version = "{current_date}"',
-            f'* ^status = #draft',
+            f'* ^status = {FHIR_STATUS_DRAFT}',
         ]
 
         # Add copyright line if it exists
