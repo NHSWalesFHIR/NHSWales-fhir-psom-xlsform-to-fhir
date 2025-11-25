@@ -17,7 +17,6 @@ def convert_to_fsh(processed_xlsforms: List[XLS_Form]):
         logging.info(f'Converting {xlsForm.file_name}...')
         questionnaire_fsh_lines = Fsh_questionnaire(xlsForm)            
         questionnaire_terminology_fsh_lines = Fsh_terminology(xlsForm)
-        ## AT 15/11/2023: decided in Oct to (temporary) not use this feature until a proper use case for it has been identified. 
         question_reference_codesystem_fsh_lines, code_tuple = create_fsh_question_reference_codesystem(xlsForm)
 
         if xlsForm.lpds_healthboard_abbreviation is None:
@@ -29,7 +28,6 @@ def convert_to_fsh(processed_xlsforms: List[XLS_Form]):
 
         logging.info(f'Converted {xlsForm.file_name}...')
     
-    ## AT 15/11/2023: decided in Oct to (temporary) not use this feature until a proper use case for it has been identified. 
     question_reference_valueset_fsh_lines_DSCN = create_fsh_question_reference_valueset(unique_codes_DSCN)
     question_reference_valueset_fsh_lines_LPDS = create_fsh_question_reference_valueset(unique_codes_LPDS)
     fsh_lines_list_DSCN.append(([], [], [], 'QuestionReferenceVSDSCN', '0.0.1', [], question_reference_valueset_fsh_lines_DSCN))
@@ -37,13 +35,12 @@ def convert_to_fsh(processed_xlsforms: List[XLS_Form]):
     return fsh_lines_list_DSCN, fsh_lines_list_LPDS
 
 
-# AT 15/11/2023: decided in Oct to (temporary) not use this feature until a proper use case for it has been identified. 
 def create_fsh_question_reference_codesystem(data: XLS_Form) -> list:
    lines = []
    if data.lpds_healthboard_abbreviation:
        cs_name = (data.lpds_healthboard_abbreviation + data.short_name + 'QuestionReferenceCS').replace('-', '_')
        cs_id = su.make_fhir_compliant((data.lpds_healthboard_abbreviation + '-' + data.short_name + '-' + 'QuestionReferenceCS'))
-       copyright = "TO ADD"
+       #copyright = "TO ADD"
    else:
        cs_name = (data.short_name + 'QuestionReferenceCS').replace('-', '_')
        cs_id = su.make_fhir_compliant((data.short_name + '-' + 'QuestionReferenceCS'))
@@ -77,7 +74,6 @@ def create_fsh_question_reference_codesystem(data: XLS_Form) -> list:
 
    return lines, seen
 
-## AT 15/11/2023: decided in Oct to (temporary) not use this feature until a proper use case for it has been identified. 
 def create_fsh_question_reference_valueset(unique_codes: list) -> list:
     lines = [
         f'ValueSet: QuestionReferenceVS',
