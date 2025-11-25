@@ -102,6 +102,7 @@ class Fsh_questionnaire:
             self.lines.append(f'{self.indent}  * extension[+].url = "http://hl7.org/fhir/StructureDefinition/entryFormat"')
         self.lines.append(f'{self.indent}  * extension[=].valueString = "{row["format"]}"')
         self.lines.append(f'{self.indent}  * linkId = "{row["name"]}"')
+        self.lines.append(f'{self.indent}  * code = QuestionReferenceCS#{row["name"]}')
         self.lines.append(f'{self.indent}  * text = "{su.escape_quotes(row["label"])}"')
         self.lines.append(f'{self.indent}  * type = #{type}')
 
