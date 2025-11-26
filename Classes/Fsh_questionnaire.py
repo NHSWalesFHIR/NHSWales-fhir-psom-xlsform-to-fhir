@@ -82,12 +82,15 @@ class Fsh_questionnaire:
             self.indent = '  ' * self.indent_level
             self.extension_added = False
 
-            if pd.isna(row["format"]) and \
-                (row['type'] in ['text', 'decimal', 'integer'] or self.select_one_pattern.match(row['type']) or self.select_multiple_pattern.match(row['type'])):
-                logging.warning(f"Warning processing {data.short_name}: found no format for {row['name']}. ")
-
             # Determine field type using improved pattern matching
             field_type = self._classify_field_type(row['type'])
+            
+            # Check for missing format values for field types that need them
+            # Note: keep_default_na=False in XLS_Form.py means empty cells are '' not NaN
+            format_value = row["format"]
+            if (pd.isna(format_value) or (isinstance(format_value, str) and format_value.strip() == '')) and field_type in ['text', 'decimal', 'integer', 'select_one', 'select_multiple']:
+                warning_msg = f"processing {data.short_name}: found no format for '{row['name']}'. entryFormat extension will be omitted from FHIR output."
+                logging.warning(warning_msg)
             
             if field_type in ['text', 'decimal', 'integer', 'select_one', 'select_multiple', 'begin_group']:
                 self.lines.append(f'{self.indent}* item[+]')
@@ -107,16 +110,11 @@ class Fsh_questionnaire:
                 self.handle_question(row, 'choice', True)
             elif field_type == 'select_multiple':
                 # Enhanced warning for select_multiple usage
-                console_warning = (
-                    f"⚠️  WARNING: select_multiple field type detected for '{row['name']}' in {data.short_name}. "
+                warning_msg = (
+                    f"select_multiple field type detected for '{row['name']}' in {data.short_name}. "
                     f"This feature is EXPERIMENTAL and added for future support only. "
                 )
-                log_warning = (
-                    f"WARNING: select_multiple field type detected for '{row['name']}' in {data.short_name}. "
-                    f"This feature is EXPERIMENTAL and added for future support only. "
-                )
-                print(f"\n{console_warning}\n")
-                logging.warning(log_warning)
+                logging.warning(warning_msg)
                 self.handle_question(row, 'choice', True, True)  # True for repeats
             elif field_type == 'end_group':
                 self.indent_level -= 1
@@ -128,7 +126,7 @@ class Fsh_questionnaire:
                     error_msg += f". Did you mean '{suggestion}'?"
                 
                 print(f'Encountered unsupported type: {error_msg}')
-                logging.error(f"Error processing {data.short_name}: {error_msg}")
+                logging.error(f"processing {data.short_name}: {error_msg}")
 
     def handle_group(self, row: pd.Series):
         self.lines.append(f'{self.indent}  * linkId = "{row["name"]}"')
@@ -138,12 +136,15 @@ class Fsh_questionnaire:
         self.lines.append('')
 
     def handle_question(self, row : pd.Series, type: str, anwerValueset: bool = False, repeats: bool = False):
-        if not self.extension_added:  
-            self.lines.append(f'{self.indent}  * extension[0].url = "{ENTRY_FORMAT_EXTENSION_URL}"')
-            self.extension_added = True  
-        else:
-            self.lines.append(f'{self.indent}  * extension[+].url = "{ENTRY_FORMAT_EXTENSION_URL}"')
-        self.lines.append(f'{self.indent}  * extension[=].valueString = "{row["format"]}"')
+        # Only add entryFormat extension if format value is provided and not empty
+        if not pd.isna(row["format"]) and str(row["format"]).strip():
+            if not self.extension_added:  
+                self.lines.append(f'{self.indent}  * extension[0].url = "{ENTRY_FORMAT_EXTENSION_URL}"')
+                self.extension_added = True  
+            else:
+                self.lines.append(f'{self.indent}  * extension[+].url = "{ENTRY_FORMAT_EXTENSION_URL}"')
+            self.lines.append(f'{self.indent}  * extension[=].valueString = "{row["format"]}"')
+        
         self.lines.append(f'{self.indent}  * linkId = "{row["name"]}"')
         question_ref_url = QUESTION_REFERENCE_CS_URL_LPDS if self.data.lpds_healthboard_abbreviation else QUESTION_REFERENCE_CS_URL_DSCN
         self.lines.append(f'{self.indent}  * code = {question_ref_url}#{row["name"]}')
