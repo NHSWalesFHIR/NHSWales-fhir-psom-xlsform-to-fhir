@@ -146,8 +146,9 @@ class Fsh_questionnaire:
             self.lines.append(f'{self.indent}  * extension[=].valueString = "{row["format"]}"')
         
         self.lines.append(f'{self.indent}  * linkId = "{row["name"]}"')
-        question_ref_url = QUESTION_REFERENCE_CS_URL_LPDS if self.data.lpds_healthboard_abbreviation else QUESTION_REFERENCE_CS_URL_DSCN
-        self.lines.append(f'{self.indent}  * code = {question_ref_url}#{row["name"]}')
+        # Only add item.code for DSCN questionnaires, not for LPDS
+        if not self.data.lpds_healthboard_abbreviation:
+            self.lines.append(f'{self.indent}  * code = {QUESTION_REFERENCE_CS_URL_DSCN}#{row["name"]}')
         self.lines.append(f'{self.indent}  * text = "{su.escape_quotes(row["label"])}"')
         self.lines.append(f'{self.indent}  * type = #{type}')
         
