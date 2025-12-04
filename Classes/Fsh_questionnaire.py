@@ -130,7 +130,15 @@ class Fsh_questionnaire:
 
     def handle_group(self, row: pd.Series):
         self.lines.append(f'{self.indent}  * linkId = "{row["name"]}"')
-        self.lines.append(f'{self.indent}  * text = "{su.escape_quotes(row["label"])}"')
+        
+        # Check if label is empty and warn, omit text field if empty
+        label_value = row["label"]
+        if pd.isna(label_value) or (isinstance(label_value, str) and label_value.strip() == ''):
+            warning_msg = f"Warning processing {self.data.short_name}: group '{row['name']}' has no label. The 'text' element will be omitted from FHIR output."
+            logging.warning(warning_msg)
+        else:
+            self.lines.append(f'{self.indent}  * text = "{su.escape_quotes(row["label"])}"')
+        
         self.lines.append(f'{self.indent}  * type = #group')
         self.indent_level += 1
         self.lines.append('')
@@ -149,7 +157,15 @@ class Fsh_questionnaire:
         # Only add item.code for DSCN questionnaires, not for LPDS
         if not self.data.lpds_healthboard_abbreviation:
             self.lines.append(f'{self.indent}  * code = {QUESTION_REFERENCE_CS_URL_DSCN}#{row["name"]}')
-        self.lines.append(f'{self.indent}  * text = "{su.escape_quotes(row["label"])}"')
+        
+        # Check if label is empty and warn, omit text field if empty
+        label_value = row["label"]
+        if pd.isna(label_value) or (isinstance(label_value, str) and label_value.strip() == ''):
+            warning_msg = f"Warning processing {self.data.short_name}: question '{row['name']}' has no label. The 'text' element will be omitted from FHIR output."
+            logging.warning(warning_msg)
+        else:
+            self.lines.append(f'{self.indent}  * text = "{su.escape_quotes(row["label"])}"')
+        
         self.lines.append(f'{self.indent}  * type = #{type}')
         
         if repeats:
