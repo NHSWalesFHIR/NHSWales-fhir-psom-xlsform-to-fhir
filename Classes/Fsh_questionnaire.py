@@ -92,7 +92,7 @@ class Fsh_questionnaire:
                 warning_msg = f"processing {data.short_name}: found no format for '{row['name']}'. entryFormat extension will be omitted from FHIR output."
                 logging.warning(warning_msg)
             
-            if field_type in ['text', 'decimal', 'integer', 'select_one', 'select_multiple', 'begin_group']:
+            if field_type in ['text', 'decimal', 'integer', 'select_one', 'select_multiple', 'note', 'begin_group']:
                 self.lines.append(f'{self.indent}* item[+]')
 
             # Check if 'sensitive' column exists and has a truthy value
@@ -106,6 +106,8 @@ class Fsh_questionnaire:
                 self.handle_question(row, 'string')
             elif field_type in ['decimal', 'integer']:
                 self.handle_question(row, field_type)
+            elif field_type == 'note':
+                self.handle_question(row, 'display')
             elif field_type == 'select_one':
                 self.handle_question(row, 'choice', True)
             elif field_type == 'select_multiple':
@@ -155,7 +157,8 @@ class Fsh_questionnaire:
         
         self.lines.append(f'{self.indent}  * linkId = "{row["name"]}"')
         # Only add item.code for DSCN questionnaires, not for LPDS
-        if not self.data.lpds_healthboard_abbreviation:
+        # Also exclude display items (notes) as they are not actual questions
+        if not self.data.lpds_healthboard_abbreviation and type != 'display':
             self.lines.append(f'{self.indent}  * code = {QUESTION_REFERENCE_CS_URL_DSCN}#{row["name"]}')
         
         # Check if label is empty and warn, omit text field if empty

@@ -28,9 +28,11 @@ class Fsh_question_reference:
         self._extract_question_codes()
 
     def _extract_question_codes(self):
-        """Extract question codes from the survey data."""
+        """Extract question codes from the survey data, excluding note/display types."""
         for _, row in self.data.df_survey.iterrows():
-            if pd.notna(row["name"]) and row["name"] != '':  # Check for non-empty "name"
+            # Skip if name is empty or if it's a note type (not a real question)
+            field_type = str(row["type"]).lower().strip() if pd.notna(row["type"]) else ''
+            if pd.notna(row["name"]) and row["name"] != '' and field_type != 'note':
                 code_tuple = (row["name"], su.escape_quotes(row["label"]))
                 if code_tuple not in self.question_codes:
                     self.question_codes.append(code_tuple)

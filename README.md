@@ -41,6 +41,7 @@ LPDS questionnaires do not include `Questionnaire.item.code` elements. Each heal
 ## Compatibility with XLSForm Types
 This tool supports the conversion of the following XLSForm elements:
 * Text
+* Note
 * Select_one
 * Select_multiple ⚠️ WARNING: This feature is provided for future support and should be used with caution. Please validate thoroughly before production use.
 * Decimal
