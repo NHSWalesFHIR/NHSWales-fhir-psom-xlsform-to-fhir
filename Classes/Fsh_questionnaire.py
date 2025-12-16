@@ -145,7 +145,7 @@ class Fsh_questionnaire:
         self.indent_level += 1
         self.lines.append('')
 
-    def handle_question(self, row : pd.Series, type: str, anwerValueset: bool = False, repeats: bool = False):
+    def handle_question(self, row : pd.Series, type: str, answerValueset: bool = False, repeats: bool = False):
         # Only add entryFormat extension if format value is provided and not empty
         if not pd.isna(row["format"]) and str(row["format"]).strip():
             if not self.extension_added:  
@@ -174,7 +174,7 @@ class Fsh_questionnaire:
         if repeats:
             self.lines.append(f'{self.indent}  * repeats = true')
 
-        if anwerValueset:
+        if answerValueset:
             # Handle both select_one and select_multiple patterns
             if self.select_one_pattern.match(row["type"]):
                 ValueSetName = self.select_one_pattern.sub('', row["type"])
