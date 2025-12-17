@@ -21,7 +21,7 @@ The script operates using designated `input/` and `output/` directories, executi
 ## Important Notes on DSCN vs LPDS Processing
 
 ### Question Reference Codes
-DSCN questionnaires include `Questionnaire.item.code` elements that reference a centralized Question Reference CodeSystem (`https://fhir.nhs.wales/CodeSystem/DataStandardsWales-PSOM-QuestionReferenceCS`). This CodeSystem contains all question identifiers across all DSCN questionnaires.
+DSCN questionnaires include `Questionnaire.item.code` elements that reference a centralized Question Reference CodeSystem (`https://fhir.nhs.wales/CodeSystem/QuestionReferenceCS`). This CodeSystem contains all question identifiers across all DSCN questionnaires.
 
 LPDS questionnaires do not include `Questionnaire.item.code` elements. Each health board manages their own questionnaires independently without a centralized question reference system. At this moment in time.
 
