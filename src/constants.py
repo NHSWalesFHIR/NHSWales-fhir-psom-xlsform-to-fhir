@@ -1,6 +1,11 @@
 """
 Constants used across the FSH generation process.
 """
+# Folder Configuration
+INPUT_FOLDER = 'input/'
+OUTPUT_FOLDER = 'output/'
+DSCN_SUBFOLDER = "DSCN"
+LPDS_SUBFOLDER = "LPDS"
 # FHIR Status
 FHIR_STATUS_DRAFT = "#draft"
 

@@ -6,14 +6,19 @@ import src.initialization as initialization
 import src.xlsform_processor as xls
 import src.xlsform_to_fsh_converter as fsh
 from pathlib import Path
-from src.constants import LPDS_HEALTHBOARD_ABBREVIATION_DICT
+from src.constants import (
+    LPDS_HEALTHBOARD_ABBREVIATION_DICT,
+    INPUT_FOLDER,
+    OUTPUT_FOLDER,
+    DSCN_SUBFOLDER,
+    LPDS_SUBFOLDER
+)
 
-input_folder = 'input/'
-output_folder = 'output/'
-terminology_folder = 'input/fsh/terminology'
-questionnaire_folder = 'input/fsh/questionnaires'
-dscn_folder = Path(output_folder) / "DSCN"
-lpds_folder = Path(output_folder) / "LPDS"
+# Derived folder paths
+dscn_folder = Path(OUTPUT_FOLDER) / DSCN_SUBFOLDER
+lpds_folder = Path(OUTPUT_FOLDER) / LPDS_SUBFOLDER
+
+# Runtime variables
 processed_xlsforms = []
 processed_xlsforms_md_overview = []
 
@@ -24,10 +29,10 @@ print('*                                                 *')
 print('***************************************************')
 
 print('Step 0 - Setup and validation')
-initialization.delete_output_folder_contents(output_folder)
-initialization.initiate_logging(output_folder)
+initialization.delete_output_folder_contents(OUTPUT_FOLDER)
+initialization.initiate_logging(OUTPUT_FOLDER)
 
-XLS_Forms = xls.read_xlsforms(input_folder, LPDS_HEALTHBOARD_ABBREVIATION_DICT)
+XLS_Forms = xls.read_xlsforms(INPUT_FOLDER, LPDS_HEALTHBOARD_ABBREVIATION_DICT)
 
 print('Step 1 - Parse XLSForms')
 processed_xlsforms, processed_xlsforms_md_overview = xls.read_and_process_xlsform_files(XLS_Forms)
@@ -36,9 +41,9 @@ print('Step 2 - Convert to FSH lines')
 fsh_lines_list_DSCN, fsh_lines_list_LPDS  = fsh.convert_to_fsh(processed_xlsforms)
 
 print('Step 3 - Writing to FSH files')
-fw.write_fsh_files(fsh_lines_list_DSCN, output_folder, LPDS_HEALTHBOARD_ABBREVIATION_DICT)
-fw.write_fsh_files(fsh_lines_list_LPDS, output_folder, LPDS_HEALTHBOARD_ABBREVIATION_DICT)
-fw.write_to_md_file(processed_xlsforms_md_overview, os.path.join(output_folder, 'Overview of processed XLSForms.md'))
+fw.write_fsh_files(fsh_lines_list_DSCN, OUTPUT_FOLDER, LPDS_HEALTHBOARD_ABBREVIATION_DICT)
+fw.write_fsh_files(fsh_lines_list_LPDS, OUTPUT_FOLDER, LPDS_HEALTHBOARD_ABBREVIATION_DICT)
+fw.write_to_md_file(processed_xlsforms_md_overview, os.path.join(OUTPUT_FOLDER, 'Overview of processed XLSForms.md'))
 logging.info('Conversion to FSH done!')
 
 print('Step 4 - Convert FSH files to FHIR')
