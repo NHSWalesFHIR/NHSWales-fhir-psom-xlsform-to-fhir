@@ -95,12 +95,12 @@ class XLS_Form:
                 raise ValueError(f'XLSForm settings column "{attribute_name}" is missing from the settings sheet.')
             
             attribute = df_settings[attribute_name].values[0]
+            
+            # Only check for None/empty, let calling methods handle type validation
             if attribute is None or (isinstance(attribute, str) and attribute.strip() == ""):
                 raise ValueError(f'XLSForm settings {attribute_name} is missing or empty.')
-            elif not isinstance(attribute, str):
-                raise TypeError(f'XLSForm settings {attribute_name} is not of type string.')
             
-        except (ValueError, TypeError, KeyError) as e:
+        except (ValueError, KeyError) as e:
             logging.error(f'Error getting attribute {attribute_name}: {str(e)}')
             raise
 
