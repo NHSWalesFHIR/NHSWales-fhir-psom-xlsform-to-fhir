@@ -1,7 +1,7 @@
 from pathlib import Path
 from tqdm import tqdm
 import logging
-from constants import NHS_WALES_BASE_URL
+from src.constants import NHS_WALES_BASE_URL
 
 def write_fsh_files(fsh_lines_list, output_folder, lpds_healthboard_abbreviation_dict):
     with tqdm(total=len(fsh_lines_list), desc="Writing FSH to files", dynamic_ncols=True) as pbar:

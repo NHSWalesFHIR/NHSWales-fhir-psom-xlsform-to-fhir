@@ -1,10 +1,10 @@
 import logging
 import os
 import subprocess
-import file_writer as fw
-import setup
-import xlsform_processor as xls
-import xlsform_to_fsh_converter as fsh
+import src.file_writer as fw
+import src.initialization as initialization
+import src.xlsform_processor as xls
+import src.xlsform_to_fsh_converter as fsh
 from pathlib import Path
 
 __version__ = '1.0.0-rc5'
@@ -42,8 +42,8 @@ print('*                                                 *')
 print('***************************************************')
 
 print('Step 0 - Setup and validation')
-setup.delete_output_folder_contents(output_folder)
-setup.initiate_logging(output_folder)
+initialization.delete_output_folder_contents(output_folder)
+initialization.initiate_logging(output_folder)
 
 XLS_Forms = xls.read_xlsforms(input_folder, lpds_healthboard_abbreviation_dict)
 

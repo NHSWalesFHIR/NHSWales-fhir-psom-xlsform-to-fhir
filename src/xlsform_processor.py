@@ -1,8 +1,8 @@
 from typing import List
 import glob, logging, traceback
 from tqdm import tqdm
-import string_util as su
-from Classes.XLS_Form import XLS_Form
+import src.string_util as su
+from src.models.XLS_Form import XLS_Form
 
 def read_and_process_xlsform_files(XLS_Forms: List[XLS_Form]):
     processed_xlsforms_md_entries = []
