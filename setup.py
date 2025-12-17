@@ -27,9 +27,9 @@ def initiate_logging(output_folder):
     file_handler = logging.FileHandler(log_file)
     file_handler.setLevel(logging.DEBUG)  # Log everything to file
     
-    # Create a stream handler and set level to error
+    # Create a stream handler and set level to warning
     stream_handler = logging.StreamHandler()
-    stream_handler.setLevel(logging.ERROR)  # Only log errors to console
+    stream_handler.setLevel(logging.WARNING)  # Log warnings and errors to console
     
     # Create formatter
     formatter = logging.Formatter('%(asctime)s ; %(levelname)s; %(message)s')

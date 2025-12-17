@@ -90,14 +90,19 @@ class XLS_Form:
 
     def get_attribute(self, df_settings: pd.DataFrame, attribute_name: str):
         try:
-            attribute = df_settings[attribute_name].values[0]
-            if attribute is None:
-                raise ValueError(f'XLSForm settings {attribute_name} is missing.')
-            elif not isinstance(attribute_name, str):
-                raise TypeError(f'XLSForm settings {attribute_name} is not of type string.')
+            # Check if the column exists first
+            if attribute_name not in df_settings.columns:
+                raise ValueError(f'XLSForm settings column "{attribute_name}" is missing from the settings sheet.')
             
-        except (ValueError, TypeError) as e:
-            return e
+            attribute = df_settings[attribute_name].values[0]
+            
+            # Only check for None/empty, let calling methods handle type validation
+            if attribute is None or (isinstance(attribute, str) and attribute.strip() == ""):
+                raise ValueError(f'XLSForm settings {attribute_name} is missing or empty.')
+            
+        except (ValueError, KeyError) as e:
+            logging.error(f'Error getting attribute {attribute_name}: {str(e)}')
+            raise
 
         return attribute
     
@@ -115,13 +120,14 @@ class XLS_Form:
                     logging.error(f'{file_name}: lpds_healthboard_abbreviation column is provided but the value is empty.')
                     raise ValueError('lpds_healthboard_abbreviation column is provided but the value is empty.')
                 
-                if not lpds_healthboard_abbreviation.isalpha():
-                    logging.error(f'{file_name}: XLSForm settings lpds_healthboard_abbreviation is not a string.')
-                    raise TypeError('XLSForm settings lpds_healthboard_abbreviation is not a string.')
+                if not lpds_healthboard_abbreviation.isalnum():
+                    logging.error(f'{file_name}: XLSForm settings lpds_healthboard_abbreviation contains invalid characters. Only letters and numbers are allowed.')
+                    raise TypeError('XLSForm settings lpds_healthboard_abbreviation contains invalid characters. Only letters and numbers are allowed.')
 
                 valid_keys = ", ".join(lpds_healthboard_abbreviation_dict.keys())
                 if lpds_healthboard_abbreviation not in lpds_healthboard_abbreviation_dict:
-                    logging.error(f"{file_name}: lpds_healthboard_abbreviation '{lpds_healthboard_abbreviation}' is not a valid abbreviation. Valid abbreviation are: {valid_keys}.")
+                    logging.error(f"{file_name}: lpds_healthboard_abbreviation '{lpds_healthboard_abbreviation}' is not a valid abbreviation. Valid abbreviations are: {valid_keys}.")
+                    raise ValueError(f"lpds_healthboard_abbreviation '{lpds_healthboard_abbreviation}' is not a valid abbreviation. Valid abbreviations are: {valid_keys}.")
                 
                 if not su.validate_string_FHIR_id(lpds_healthboard_abbreviation):
                     logging.warning(f'{file_name}: XLSForm settings lpds_healthboard_abbreviation cannot be used for FHIR ids. Making FHIR id compliant')

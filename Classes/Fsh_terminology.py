@@ -1,13 +1,16 @@
 import string_util as su
 import terminology_util as tu
 from Classes.XLS_Form import XLS_Form
+from constants import (
+    COPYRIGHT_CS_LPDS,
+    COPYRIGHT_VS_LPDS,
+    COPYRIGHT_CS_DSCN,
+    COPYRIGHT_VS_DSCN,
+    NHS_WALES_PUBLISHER,
+    FHIR_STATUS_DRAFT
+)
 
 class Fsh_terminology:
-
-    copyright_cs_lpds = "The information provided in the CodeSystem may be part of a licensed PROM questionnaire form. The user must ensure they comply with the terms of the license set by the license holder for any PROM questionnaires used."
-    copyright_vs_lpds = "The information provided in the ValueSet may be part of a licensed PROM questionnaire form. The user must ensure they comply with the terms of the license set by the license holder for any PROM questionnaires used."
-    copyright_cs = "The information provided in the CodeSystem is part of a licensed PROM questionnaire form. The user must ensure they comply with the terms of the license set by the license holder for any PROM questionnaires used."
-    copyright_vs = "The information provided in the ValueSet is part of a licensed PROM questionnaire form. The user must ensure they comply with the terms of the license set by the license holder for any PROM questionnaires used."
 
     def __init__(self, data: XLS_Form):
         """
@@ -33,24 +36,24 @@ class Fsh_terminology:
 
         if cs_id != "":
             name_addition = "VS"
-            copyright = self.copyright_vs
+            copyright = COPYRIGHT_VS_DSCN if not self.data.lpds_healthboard_abbreviation else COPYRIGHT_VS_LPDS
         else :
             name_addition = "CS"
-            copyright = self.copyright_cs
+            copyright = COPYRIGHT_CS_DSCN if not self.data.lpds_healthboard_abbreviation else COPYRIGHT_CS_LPDS
 
-        publisher = "NHS Wales"
+        publisher = NHS_WALES_PUBLISHER
 
         name = ""
 
         if self.data.lpds_healthboard_abbreviation:
             publisher = self.data.lpds_healthboard_abbreviation.replace('-', '')
 
-            name = self.data.lpds_healthboard_abbreviation
+            name = 'LPDS' + self.data.lpds_healthboard_abbreviation
 
             if cs_id != "":
-                copyright = self.copyright_vs_lpds
+                copyright = COPYRIGHT_VS_LPDS
             else:
-                copyright = self.copyright_cs_lpds
+                copyright = COPYRIGHT_CS_LPDS
 
         processed_name = (name + self.data.short_name + proper_list_name + name_addition).replace('-', '_')
 
@@ -63,7 +66,7 @@ class Fsh_terminology:
             f'Description: "Codes for the question \'{proper_list_name}\' in PSOM Questionnaire \'{self.data.title}\'."',
             f'* ^name = "{processed_name}"',
             f'* ^version = "{self.data.version}"',
-            f'* ^status = #draft',
+            f'* ^status = {FHIR_STATUS_DRAFT}',
             f'* ^copyright = "{copyright}"',
             f'* ^publisher = "{publisher}"',
             ]

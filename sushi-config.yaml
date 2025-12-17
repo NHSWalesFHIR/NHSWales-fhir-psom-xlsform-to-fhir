@@ -1,0 +1,4 @@
+canonical: https://fhir.nhs.wales
+fhirVersion: 4.0.1
+version: 0.1.0
+FSHOnly: true
