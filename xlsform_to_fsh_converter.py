@@ -24,7 +24,6 @@ def convert_to_fsh(processed_xlsforms: List[XLS_Form]):
             question_codes_DSCN.extend(question_reference_fsh.get_question_codes())
             fsh_lines_list_DSCN.append((xlsForm.file_name, questionnaire_fsh_lines.lines, questionnaire_terminology_fsh_lines.lines, xlsForm.short_name, xlsForm.version, xlsForm.lpds_healthboard_abbreviation, []))
         else:
-            # LPDS questionnaires don't use item.code elements
             fsh_lines_list_LPDS.append((xlsForm.file_name, questionnaire_fsh_lines.lines, questionnaire_terminology_fsh_lines.lines, xlsForm.short_name, xlsForm.version, xlsForm.lpds_healthboard_abbreviation, []))
 
         logging.info(f'Converted {xlsForm.file_name}...')
