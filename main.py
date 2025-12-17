@@ -1,39 +1,26 @@
 import logging
 import os
 import subprocess
-import file_writer as fw
-import setup
-import xlsform_processor as xls
-import xlsform_to_fsh_converter as fsh
+import src.file_writer as fw
+import src.initialization as initialization
+import src.xlsform_processor as xls
+import src.xlsform_to_fsh_converter as fsh
 from pathlib import Path
+from src.constants import (
+    LPDS_HEALTHBOARD_ABBREVIATION_DICT,
+    INPUT_FOLDER,
+    OUTPUT_FOLDER,
+    DSCN_SUBFOLDER,
+    LPDS_SUBFOLDER
+)
 
-__version__ = '1.0.0-rc5'
-input_folder = 'input/'
-output_folder = 'output/'
-terminology_folder = 'input/fsh/terminology'
-questionnaire_folder = 'input/fsh/questionnaires'
-dscn_folder = Path(output_folder) / "DSCN"
-lpds_folder = Path(output_folder) / "LPDS"
+# Derived folder paths
+dscn_folder = Path(OUTPUT_FOLDER) / DSCN_SUBFOLDER
+lpds_folder = Path(OUTPUT_FOLDER) / LPDS_SUBFOLDER
+
+# Runtime variables
 processed_xlsforms = []
 processed_xlsforms_md_overview = []
-lpds_healthboard_abbreviation_dict = {
-    "ABU": "https://fhir.abuhb.nhs.wales",
-    "7A6": "https://fhir.abuhb.nhs.wales",
-    "BCU": "https://fhir.bcuhb.nhs.wales",
-    "7A1": "https://fhir.bcuhb.nhs.wales",
-    "CAV": "https://fhir.cavuhb.nhs.wales",
-    "7A4": "https://fhir.cavuhb.nhs.wales",
-    "CTM": "https://fhir.ctmuhb.nhs.wales",
-    "7A5": "https://fhir.ctmuhb.nhs.wales",
-    "HDU": "https://fhir.hduhb.nhs.wales",
-    "7A2": "https://fhir.hduhb.nhs.wales",
-    "PTH": "https://fhir.pthb.nhs.wales",
-    "7A7": "https://fhir.pthb.nhs.wales",
-    "SBU": "https://fhir.sbuhb.nhs.wales",
-    "7A3": "https://fhir.sbuhb.nhs.wales",
-    "VUH": "https://fhir.vunhst.nhs.wales",
-    "RQF": "https://fhir.vunhst.nhs.wales"
-}
 
 print('***************************************************')
 print('*                                                 *')
@@ -42,10 +29,10 @@ print('*                                                 *')
 print('***************************************************')
 
 print('Step 0 - Setup and validation')
-setup.delete_output_folder_contents(output_folder)
-setup.initiate_logging(output_folder)
+initialization.delete_output_folder_contents(OUTPUT_FOLDER)
+initialization.initiate_logging(OUTPUT_FOLDER)
 
-XLS_Forms = xls.read_xlsforms(input_folder, lpds_healthboard_abbreviation_dict)
+XLS_Forms = xls.read_xlsforms(INPUT_FOLDER, LPDS_HEALTHBOARD_ABBREVIATION_DICT)
 
 print('Step 1 - Parse XLSForms')
 processed_xlsforms, processed_xlsforms_md_overview = xls.read_and_process_xlsform_files(XLS_Forms)
@@ -54,9 +41,9 @@ print('Step 2 - Convert to FSH lines')
 fsh_lines_list_DSCN, fsh_lines_list_LPDS  = fsh.convert_to_fsh(processed_xlsforms)
 
 print('Step 3 - Writing to FSH files')
-fw.write_fsh_files(fsh_lines_list_DSCN, output_folder, lpds_healthboard_abbreviation_dict)
-fw.write_fsh_files(fsh_lines_list_LPDS, output_folder, lpds_healthboard_abbreviation_dict)
-fw.write_to_md_file(processed_xlsforms_md_overview, os.path.join(output_folder, 'Overview of processed XLSForms.md'))
+fw.write_fsh_files(fsh_lines_list_DSCN, OUTPUT_FOLDER, LPDS_HEALTHBOARD_ABBREVIATION_DICT)
+fw.write_fsh_files(fsh_lines_list_LPDS, OUTPUT_FOLDER, LPDS_HEALTHBOARD_ABBREVIATION_DICT)
+fw.write_to_md_file(processed_xlsforms_md_overview, os.path.join(OUTPUT_FOLDER, 'Overview of processed XLSForms.md'))
 logging.info('Conversion to FSH done!')
 
 print('Step 4 - Convert FSH files to FHIR')

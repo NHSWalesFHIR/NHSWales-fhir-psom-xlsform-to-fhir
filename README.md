@@ -50,18 +50,64 @@ This tool supports the conversion of the following XLSForm elements:
 
 Refer to the mapping table provided for details on how specific DSCN fields correspond to XLSForm elements and their subsequent mapping to FHIR resources.
 
+## Project Structure
+
+```
+NHSWales-fhir-psom-xlsform-to-fhir/
+├── main.py                    # Entry point - Orchestrates the conversion workflow
+├── setup.py                   # Package setup and installation configuration
+├── requirements.txt           # Python dependencies
+├── README.md                  # This file
+├── sushi-config.yaml         # Root SUSHI configuration
+├── src/                      # Source code package
+│   ├── __init__.py
+│   ├── constants.py          # Application constants and configuration values
+│   ├── file_writer.py        # FSH file writing utilities
+│   ├── string_util.py        # String manipulation utilities
+│   ├── terminology_util.py   # Terminology processing utilities
+│   ├── xlsform_processor.py  # XLSForm file processing
+│   ├── xlsform_to_fsh_converter.py  # Main conversion logic
+│   └── models/               # Data models and classes
+│       ├── __init__.py
+│       ├── Fsh_questionnaire.py        # FSH Questionnaire generation
+│       ├── Fsh_terminology.py          # FSH CodeSystem/ValueSet generation
+│       ├── Fsh_question_reference.py   # FSH Question Reference generation
+│       └── XLS_Form.py                 # XLSForm data representation
+├── input/                    # Input directory for XLSForm files
+│   └── README.md
+└── output/                   # Generated output directory
+    ├── log_file.txt
+    ├── Overview of processed XLSForms.md
+    ├── DSCN/                 # DSCN questionnaire outputs
+    │   ├── sushi-config.yaml
+    │   ├── input/fsh/
+    │   └── fsh-generated/
+    └── LPDS/                 # LPDS questionnaire outputs (by health board)
+        └── [HealthBoard]/
+            ├── sushi-config.yaml
+            ├── input/fsh/
+            └── fsh-generated/
+```
+
 ## File Descriptions
-- `main.py`: Entry point of the application. Initiates the conversion process.
-- `setup.py`: Contains package requirements and installation steps.
-- `file_writer.py`: Handles writing FSH lines to disk.
-- `string_util.py`: Contains utility functions for string manipulation.
-- `xlsform_processor.py`: Processes XLSForm files and prepares them for conversion.
-- `xlsform_to_fsh_converter.py`: Converts the processed XLSForm data to FSH lines.
-- `Classes`: Folder with additional Python classes.
-    - `Fsh_questionnaire.py`: Converts XlsFormData into a FSH questionnaire.
-    - `Fsh_terminology.py`: Converts XlsFormData into FSH CodeSystems and ValueSets. 
-    - `Fsh_question_reference.py`: Converts XlsFormData into FSH QuestionReference CodeSystems and consolidated ValueSets.
-    - `XLS_Form.py`: Reads, processed and stores the XLS_Form. This is the main object used to represent the XLS form.
+
+### Core Application Files
+- **main.py**: Entry point of the application. Orchestrates the entire conversion workflow from XLSForm input to FHIR resource generation.
+- **setup.py**: Contains package requirements and installation configuration.
+
+### Source Package (`src/`)
+- **constants.py**: Defines application-wide constants including URLs, copyright statements, and FHIR configuration values.
+- **file_writer.py**: Handles writing FSH content to the appropriate directory structure and managing SUSHI configuration files.
+- **string_util.py**: Provides utility functions for string manipulation and FHIR identifier validation.
+- **terminology_util.py**: Contains utilities for processing terminology data and generating terminology-related FSH content.
+- **xlsform_processor.py**: Reads and processes XLSForm files from the input directory, preparing them for conversion.
+- **xlsform_to_fsh_converter.py**: Coordinates the conversion of processed XLSForm data into FSH format.
+
+### Models (`src/models/`)
+- **XLS_Form.py**: Core data model representing an XLSForm. Parses and validates XLSForm structure including settings, survey, and choices sheets.
+- **Fsh_questionnaire.py**: Generates FSH Questionnaire resources from XLSForm data, including items, answer options, and extensions.
+- **Fsh_terminology.py**: Generates FSH CodeSystem and ValueSet resources from XLSForm choices.
+- **Fsh_question_reference.py**: Generates FSH Question Reference CodeSystems for DSCN questionnaires, providing centralized question identifiers.
 
 ## Dependencies
 This script depends on Python 3.x and on the requirements listed in `requirements.txt`.

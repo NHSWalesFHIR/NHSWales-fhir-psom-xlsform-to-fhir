@@ -1,4 +1,4 @@
-import string_util as su
+import src.string_util as su
 
 def generate_vs_or_cs_id(short_name: str, list_name: str, id_type: str, lpds_healthboard_abbreviation: str = None) -> str:
     """

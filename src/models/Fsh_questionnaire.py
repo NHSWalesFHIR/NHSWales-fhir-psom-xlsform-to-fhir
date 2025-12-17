@@ -1,9 +1,9 @@
 import re, logging
-from Classes.XLS_Form import XLS_Form
-import string_util as su
+from src.models.XLS_Form import XLS_Form
+import src.string_util as su
 import pandas as pd
-import terminology_util as tu
-from constants import (
+import src.terminology_util as tu
+from src.constants import (
     QUESTION_REFERENCE_CS_URL_DSCN,
     NHS_WALES_PUBLISHER,
     COPYRIGHT_QUESTIONNAIRE,

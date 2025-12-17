@@ -1,7 +1,7 @@
-import string_util as su
-import terminology_util as tu
-from Classes.XLS_Form import XLS_Form
-from constants import (
+import src.string_util as su
+import src.terminology_util as tu
+from src.models.XLS_Form import XLS_Form
+from src.constants import (
     COPYRIGHT_CS_LPDS,
     COPYRIGHT_VS_LPDS,
     COPYRIGHT_CS_DSCN,

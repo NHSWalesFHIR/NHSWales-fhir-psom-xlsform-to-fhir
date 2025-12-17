@@ -2,11 +2,11 @@ import logging
 from typing import List
 import pandas as pd
 from tqdm import tqdm
-import string_util as su
-from Classes.Fsh_questionnaire import Fsh_questionnaire
-from Classes.Fsh_terminology import Fsh_terminology
-from Classes.Fsh_question_reference import Fsh_question_reference, Fsh_question_reference_codesystem
-from Classes.XLS_Form import XLS_Form
+import src.string_util as su
+from src.models.Fsh_questionnaire import Fsh_questionnaire
+from src.models.Fsh_terminology import Fsh_terminology
+from src.models.Fsh_question_reference import Fsh_question_reference, Fsh_question_reference_codesystem
+from src.models.XLS_Form import XLS_Form
     
 def convert_to_fsh(processed_xlsforms: List[XLS_Form]):
     fsh_lines_list_DSCN = []

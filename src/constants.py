@@ -1,6 +1,11 @@
 """
 Constants used across the FSH generation process.
 """
+# Folder Configuration
+INPUT_FOLDER = 'input/'
+OUTPUT_FOLDER = 'output/'
+DSCN_SUBFOLDER = "DSCN"
+LPDS_SUBFOLDER = "LPDS"
 # FHIR Status
 FHIR_STATUS_DRAFT = "#draft"
 
@@ -12,6 +17,26 @@ DSCN_PREFIX = "DataStandardsWales"
 QUESTION_REFERENCE_CS_URL_DSCN = "https://fhir.nhs.wales/CodeSystem/QuestionReferenceCS"
 QUESTION_REFERENCE_CS_URL_LPDS = "https://fhir.nhs.wales/CodeSystem/LPDSQuestionReferenceCS" ## Currently not in use.
 NHS_WALES_BASE_URL = "https://fhir.nhs.wales"
+
+# LPDS Health Board Abbreviation to URL Mapping
+LPDS_HEALTHBOARD_ABBREVIATION_DICT = {
+    "ABU": "https://fhir.abuhb.nhs.wales",
+    "7A6": "https://fhir.abuhb.nhs.wales",
+    "BCU": "https://fhir.bcuhb.nhs.wales",
+    "7A1": "https://fhir.bcuhb.nhs.wales",
+    "CAV": "https://fhir.cavuhb.nhs.wales",
+    "7A4": "https://fhir.cavuhb.nhs.wales",
+    "CTM": "https://fhir.ctmuhb.nhs.wales",
+    "7A5": "https://fhir.ctmuhb.nhs.wales",
+    "HDU": "https://fhir.hduhb.nhs.wales",
+    "7A2": "https://fhir.hduhb.nhs.wales",
+    "PTH": "https://fhir.pthb.nhs.wales",
+    "7A7": "https://fhir.pthb.nhs.wales",
+    "SBU": "https://fhir.sbuhb.nhs.wales",
+    "7A3": "https://fhir.sbuhb.nhs.wales",
+    "VUH": "https://fhir.vunhst.nhs.wales",
+    "RQF": "https://fhir.vunhst.nhs.wales"
+}
 
 # Extension URLs
 ENTRY_FORMAT_EXTENSION_URL = "http://hl7.org/fhir/StructureDefinition/entryFormat"
