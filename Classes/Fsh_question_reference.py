@@ -32,7 +32,11 @@ class Fsh_question_reference:
         for _, row in self.data.df_survey.iterrows():
             # Skip if name is empty or if it's a note type (not a real question)
             field_type = str(row["type"]).lower().strip() if pd.notna(row["type"]) else ''
-            if pd.notna(row["name"]) and row["name"] != '' and field_type != 'note':
+            if (
+                pd.notna(row["name"])
+                and row["name"] != ''
+                and field_type not in {'note', 'begin_group', 'end_group'}
+            ):
                 code_tuple = (row["name"], su.escape_quotes(row["label"]))
                 if code_tuple not in self.question_codes:
                     self.question_codes.append(code_tuple)
