@@ -37,7 +37,8 @@ class Fsh_question_reference:
                 and row["name"] != ''
                 and field_type not in {'note', 'begin_group', 'end_group'}
             ):
-                code_tuple = (row["name"], su.escape_quotes(row["label"]))
+                label = row["label"] if pd.notna(row["label"]) and row["label"] != '' else ''
+                code_tuple = (row["name"], su.escape_quotes(label))
                 if code_tuple not in self.question_codes:
                     self.question_codes.append(code_tuple)
 
