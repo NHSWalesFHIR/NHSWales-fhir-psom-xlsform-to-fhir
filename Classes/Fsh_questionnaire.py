@@ -5,10 +5,8 @@ import pandas as pd
 import terminology_util as tu
 from constants import (
     QUESTION_REFERENCE_CS_URL_DSCN,
-    QUESTION_REFERENCE_CS_URL_LPDS,
     NHS_WALES_PUBLISHER,
-    COPYRIGHT_QUESTIONNAIRE_LPDS,
-    COPYRIGHT_QUESTIONNAIRE_DSCN,
+    COPYRIGHT_QUESTIONNAIRE,
     ENTRY_FORMAT_EXTENSION_URL,
     SECURITY_LABEL_EXTENSION_URL,
     FHIR_STATUS_DRAFT
@@ -60,7 +58,7 @@ class Fsh_questionnaire:
         else:
             instance_id = f'DataStandardsWales-PSOM-{data.short_name}'
             name = f'DataStandardsWalesPSOM{questionnaire_name}'
-            copyright = COPYRIGHT_QUESTIONNAIRE_DSCN
+            copyright = COPYRIGHT_QUESTIONNAIRE
             publisher = NHS_WALES_PUBLISHER
 
         self.lines = [
