@@ -75,6 +75,13 @@ class Fsh_questionnaire:
             '',
             ]
         
+        # Build a name→row lookup so enableWhen logic can resolve the trigger question's type
+        self._survey_lookup = {
+            row['name']: row
+            for _, row in data.df_survey.iterrows()
+            if isinstance(row.get('name'), str) and row['name'].strip()
+        }
+
         self.indent_level = 0
         for _, row in data.df_survey.iterrows():
             self.indent = '  ' * self.indent_level
@@ -90,7 +97,7 @@ class Fsh_questionnaire:
                 warning_msg = f"processing {data.short_name}: found no format for '{row['name']}'. entryFormat extension will be omitted from FHIR output."
                 logging.warning(warning_msg)
             
-            if field_type in ['text', 'decimal', 'integer', 'select_one', 'select_multiple', 'note', 'begin_group']:
+            if field_type in ['text', 'decimal', 'integer', 'select_one', 'select_multiple', 'note', 'begin_group', 'date']:
                 self.lines.append(f'{self.indent}* item[+]')
 
             # Check if 'sensitive' column exists and has a truthy value
@@ -102,7 +109,7 @@ class Fsh_questionnaire:
                 self.handle_group(row)
             elif field_type == 'text':
                 self.handle_question(row, 'string')
-            elif field_type in ['decimal', 'integer']:
+            elif field_type in ['decimal', 'integer', 'date']:
                 self.handle_question(row, field_type)
             elif field_type == 'note':
                 self.handle_question(row, 'display')
@@ -168,7 +175,9 @@ class Fsh_questionnaire:
             self.lines.append(f'{self.indent}  * text = "{su.escape_quotes(row["label"])}"')
         
         self.lines.append(f'{self.indent}  * type = #{type}')
-        
+
+        self._add_enable_when(row['name'])
+
         if repeats:
             self.lines.append(f'{self.indent}  * repeats = true')
 
@@ -185,6 +194,63 @@ class Fsh_questionnaire:
             self.lines.append(f'{self.indent}  * answerValueSet = Canonical({ValueSetId})')
 
         self.lines.append('')
+
+    def _add_enable_when(self, row_name: str):
+        """Emit FSH enableWhen lines for a question that has XLSForm relevant conditions."""
+        conditions = self.data.enable_when_conditions.get(row_name)
+        if not conditions:
+            return
+
+        operator_map = {
+            '=':  '#=',
+            '!=': '#!=',
+            '<':  '#<',
+            '<=': '#<=',
+            '>':  '#>',
+            '>=': '#>=',
+        }
+
+        for cond in conditions:
+            trigger_name = cond['linkId']
+            operator_fsh = operator_map.get(cond['operator'], f"#{cond['operator']}")
+            answer_value = cond['answer']
+
+            self.lines.append(f'{self.indent}  * enableWhen[+].question = "{trigger_name}"')
+            self.lines.append(f'{self.indent}  * enableWhen[=].operator = {operator_fsh}')
+
+            trigger_row = self._survey_lookup.get(trigger_name)
+            if trigger_row is None:
+                logging.error(
+                    f'{self.data.file_name}: enableWhen on "{row_name}": '
+                    f'trigger question "{trigger_name}" not found in survey sheet. '
+                    f'Falling back to answerString.')
+                self.lines.append(f'{self.indent}  * enableWhen[=].answerString = "{answer_value}"')
+                continue
+
+            trigger_type = self._classify_field_type(trigger_row['type'])
+
+            if trigger_type == 'select_one':
+                list_name = self.select_one_pattern.sub('', trigger_row['type'])
+                cs_id = tu.generate_vs_or_cs_id(
+                    self.data.short_name, list_name, 'CS',
+                    self.data.lpds_healthboard_abbreviation)
+                self.lines.append(f'{self.indent}  * enableWhen[=].answerCoding = {cs_id}#{answer_value}')
+            elif trigger_type == 'integer':
+                self.lines.append(f'{self.indent}  * enableWhen[=].answerInteger = {answer_value}')
+            elif trigger_type == 'decimal':
+                self.lines.append(f'{self.indent}  * enableWhen[=].answerDecimal = {answer_value}')
+            elif trigger_type == 'text':
+                self.lines.append(f'{self.indent}  * enableWhen[=].answerString = "{answer_value}"')
+            else:
+                logging.error(
+                    f'{self.data.file_name}: enableWhen on "{row_name}": '
+                    f'trigger question "{trigger_name}" has unhandled type "{trigger_type}". '
+                    f'Falling back to answerString.')
+                self.lines.append(f'{self.indent}  * enableWhen[=].answerString = "{answer_value}"')
+
+        if len(conditions) > 1:
+            behavior = self.data.enable_behavior.get(row_name, 'any')
+            self.lines.append(f'{self.indent}  * enableBehavior = #{behavior}')
 
     def _classify_field_type(self, field_type: str) -> str:
         """

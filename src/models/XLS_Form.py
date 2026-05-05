@@ -1,3 +1,4 @@
+import re
 import pandas as pd
 import logging
 import src.string_util as su
@@ -40,10 +41,145 @@ class XLS_Form:
             self.set_and_parse_title(self.df_settings, self.file_name)
             self.set_and_parse_form_id(self.df_settings, self.file_name)
             self.set_and_parse_lpds_healthboard_abbreviation(self.df_settings, self.file_name, self.lpds_healthboard_abbreviation_dict)
+            self.parse_relevant_conditions()
 
         except (ValueError, TypeError) as e:
             logging.exception(f'Error processing {self.file_name}: {str(e)}')
             raise
+
+    def parse_relevant_conditions(self):
+        """
+        Parse the 'relevant' column in the survey sheet into structured enable-when conditions.
+
+        XLSForm expressions like:
+            ${FIELD} = 'VALUE' or ${FIELD} = 'VALUE2'
+        are parsed into a list of condition dicts per question name.
+
+        Populates:
+            self.enable_when_conditions : dict[str, list[dict]]
+                Maps each question name to a list of conditions, where each condition is:
+                    {'linkId': str, 'operator': str, 'answer': str}
+            self.enable_behavior : dict[str, str]
+                Maps each question name to 'any' (or-joined) or 'all' (and-joined).
+        """
+        self.enable_when_conditions = {}
+        self.enable_behavior = {}
+
+        # The spreadsheet may have a duplicate 'relevant' column (e.g. a legacy empty one),
+        # causing pandas to rename the second to 'relevant.1'. Find the column that has data.
+        relevant_col = None
+        for col in self.df_survey.columns:
+            if col == 'relevant' or col.startswith('relevant.'):
+                if self.df_survey[col].astype(str).str.strip().ne('').any():
+                    relevant_col = col
+                    break
+        # Fall back to the first 'relevant' column even if empty
+        if relevant_col is None:
+            if 'relevant' in self.df_survey.columns:
+                relevant_col = 'relevant'
+            else:
+                logging.info(f'{self.file_name}: No "relevant" column found in survey sheet.')
+                return
+
+        if relevant_col != 'relevant':
+            logging.info(f'{self.file_name}: Using column "{relevant_col}" as the relevant column (duplicate column name detected).')
+
+        for _, row in self.df_survey.iterrows():
+            name = row.get('name', '')
+            relevant = row.get(relevant_col, '')
+
+            if not isinstance(relevant, str) or relevant.strip() == '':
+                continue
+
+            parsed_relevant = self._parse_relevant_expression(relevant.strip())
+
+            if parsed_relevant:
+                self.enable_when_conditions[name] = parsed_relevant['conditions']
+                self.enable_behavior[name] = parsed_relevant['behavior']
+                logging.info(
+                    f'{self.file_name}: Parsed {len(parsed_relevant["conditions"])} enable condition(s) '
+                    f'(behavior="{parsed_relevant["behavior"]}") for question "{name}".')
+            else:
+                logging.error(
+                    f'{self.file_name}: Could not parse relevant expression '
+                    f'for question "{name}": "{relevant}"')
+
+    def _parse_relevant_expression(self, expression: str):
+        tokens = re.split(r'\s+(or)\s+', expression, flags=re.IGNORECASE)
+        condition_tokens = [token.strip() for token in tokens[0::2] if token.strip()]
+        connectors = [connector.lower() for connector in tokens[1::2]]
+
+        if not condition_tokens:
+            return None
+
+        if re.search(r'\s+and\s+', expression, flags=re.IGNORECASE):
+            logging.error(
+                f'{self.file_name}: Only OR conditions are supported in relevant expressions: "{expression}"')
+            return None
+
+        if re.fullmatch(r'not\(.*\)', expression, flags=re.IGNORECASE) or re.fullmatch(r'\$\{[^}]+\}', expression):
+            logging.error(
+                f'{self.file_name}: Boolean relevant expressions are not supported: "{expression}"')
+            return None
+
+        if connectors and any(connector != 'or' for connector in connectors):
+            logging.error(
+                f'{self.file_name}: Only OR conditions are supported in relevant expressions: "{expression}"')
+            return None
+
+        behavior = 'any'
+
+        conditions = []
+        for token in condition_tokens:
+            condition = self._parse_relevant_condition(token)
+            if condition is None:
+                return None
+            conditions.append(condition)
+
+        return {'conditions': conditions, 'behavior': behavior}
+
+    def _parse_relevant_condition(self, token: str):
+        if re.fullmatch(r'not\(\s*\$\{([^}]+)\}\s*\)', token, flags=re.IGNORECASE) or re.fullmatch(r'\$\{([^}]+)\}', token):
+            logging.error(
+                f'{self.file_name}: Boolean relevant condition syntax is not supported: "{token}"')
+            return None
+
+        comparison_match = re.fullmatch(r'\$\{([^}]+)\}\s*(=|!=|<=|>=|<|>)\s*(.+)', token)
+        if not comparison_match:
+            logging.error(
+                f'{self.file_name}: Unsupported relevant condition syntax: "{token}"')
+            return None
+
+        answer_type, answer_value = self._parse_relevant_literal(comparison_match.group(3).strip())
+        if answer_type is None:
+            logging.error(
+                f'{self.file_name}: Unsupported relevant literal in condition: "{token}"')
+            return None
+
+        return {
+            'linkId': comparison_match.group(1),
+            'operator': comparison_match.group(2),
+            'answer': answer_value,
+            'answer_type': answer_type
+        }
+
+    def _parse_relevant_literal(self, literal: str):
+        if re.fullmatch(r"'[^']*'", literal) or re.fullmatch(r'"[^"]*"', literal):
+            return 'string', literal[1:-1]
+
+        literal_lower = literal.lower()
+        if literal_lower in ['true', 'true()']:
+            return 'boolean', True
+        if literal_lower in ['false', 'false()']:
+            return 'boolean', False
+
+        if re.fullmatch(r'-?\d+', literal):
+            return 'integer', int(literal)
+
+        if re.fullmatch(r'-?\d+\.\d+', literal):
+            return 'decimal', float(literal)
+
+        return None, None
 
     def set_and_parse_version(self, df_settings: pd.DataFrame, file_name):
         try:
