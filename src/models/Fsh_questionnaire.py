@@ -84,6 +84,10 @@ class Fsh_questionnaire:
 
         self.indent_level = 0
         for _, row in data.df_survey.iterrows():
+            # Suppress text questions that are the free-text half of an open-choice pair
+            if row['name'] in data.open_choice_text_questions:
+                continue
+
             self.indent = '  ' * self.indent_level
             self.extension_added = False
 
@@ -114,7 +118,8 @@ class Fsh_questionnaire:
             elif field_type == 'note':
                 self.handle_question(row, 'display')
             elif field_type == 'select_one':
-                self.handle_question(row, 'choice', True)
+                fhir_type = 'open-choice' if row['name'] in data.open_choice_parents else 'choice'
+                self.handle_question(row, fhir_type, True)
             elif field_type == 'select_multiple':
                 # Enhanced warning for select_multiple usage
                 warning_msg = (

@@ -42,6 +42,7 @@ class XLS_Form:
             self.set_and_parse_form_id(self.df_settings, self.file_name)
             self.set_and_parse_lpds_healthboard_abbreviation(self.df_settings, self.file_name, self.lpds_healthboard_abbreviation_dict)
             self.parse_relevant_conditions()
+            self.detect_open_choice_pairs()
 
         except (ValueError, TypeError) as e:
             logging.exception(f'Error processing {self.file_name}: {str(e)}')
@@ -103,6 +104,51 @@ class XLS_Form:
                 logging.error(
                     f'{self.file_name}: Could not parse relevant expression '
                     f'for question "{name}": "{relevant}"')
+
+    def detect_open_choice_pairs(self):
+        """
+        Detect select_one + text pairs that represent open-choice questions.
+
+        A pair is identified when:
+        - A text question is named <parent>_text
+        - All its relevant conditions reference the same <parent> question
+        - <parent> is a select_one question
+
+        Populates:
+            self.open_choice_parents       : set of select_one question names to emit as open-choice
+            self.open_choice_text_questions: set of text question names to suppress in FHIR output
+        """
+        self.open_choice_parents = set()
+        self.open_choice_text_questions = set()
+
+        select_one_pattern = re.compile(r"select[_\s]*one[_\s]*", re.IGNORECASE)
+        name_to_type = {
+            row['name']: str(row['type'])
+            for _, row in self.df_survey.iterrows()
+            if isinstance(row.get('name'), str) and row['name'].strip()
+        }
+
+        for text_name, conditions in self.enable_when_conditions.items():
+            if name_to_type.get(text_name, '').lower().strip() != 'text':
+                continue
+            if not text_name.endswith('_text'):
+                continue
+
+            parent_names = {cond['linkId'] for cond in conditions}
+            if len(parent_names) != 1:
+                continue
+
+            parent_name = next(iter(parent_names))
+            if text_name != parent_name + '_text':
+                continue
+            if not select_one_pattern.match(name_to_type.get(parent_name, '')):
+                continue
+
+            self.open_choice_parents.add(parent_name)
+            self.open_choice_text_questions.add(text_name)
+            logging.info(
+                f'{self.file_name}: Detected open-choice pair: '
+                f'"{parent_name}" (select_one) + "{text_name}" (text).')
 
     def _parse_relevant_expression(self, expression: str):
         tokens = re.split(r'\s+(or)\s+', expression, flags=re.IGNORECASE)

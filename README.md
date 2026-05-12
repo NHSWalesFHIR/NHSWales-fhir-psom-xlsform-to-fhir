@@ -50,6 +50,22 @@ This tool supports the conversion of the following XLSForm elements:
 
 Refer to the mapping table provided for details on how specific DSCN fields correspond to XLSForm elements and their subsequent mapping to FHIR resources.
 
+### Open-Choice Pattern Detection
+
+XLSForm has no native `open-choice` type. The tool automatically detects the standard XLSForm workaround and converts it to a single FHIR `open-choice` item.
+
+**Detection criteria** — the tool recognises a pair of adjacent questions as open-choice when all three conditions hold:
+
+1. The first question is `select_one`.
+2. The second question is `text` and its name equals the first question's name with `_text` appended (e.g. `QUESTION_ID` + `QUESTION_ID_text`).
+3. All `relevant` conditions on the text question reference the same `select_one` parent.
+
+**FHIR output** — the pair is collapsed into a single item:
+- `select_one` → `Questionnaire.item.type = #open-choice`
+- The `text` question is suppressed entirely (no `enableWhen` emitted).
+
+> **Note:** `open-choice` is deprecated in FHIR R6 and its use is currently required by Promptly only. Other vendors will continue to receive the standard 2-item output for any forms that do not match this pattern.
+
 ## Project Structure
 
 ```
