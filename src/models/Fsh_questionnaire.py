@@ -101,7 +101,7 @@ class Fsh_questionnaire:
                 warning_msg = f"processing {data.short_name}: found no format for '{row['name']}'. entryFormat extension will be omitted from FHIR output."
                 logging.warning(warning_msg)
             
-            if field_type in ['text', 'decimal', 'integer', 'select_one', 'select_multiple', 'note', 'begin_group', 'date']:
+            if field_type in ['text', 'decimal', 'integer', 'select_one', 'select_multiple', 'note', 'begin_group', 'date', 'datetime']:
                 self.lines.append(f'{self.indent}* item[+]')
 
             # Check if 'sensitive' column exists and has a truthy value
@@ -115,6 +115,9 @@ class Fsh_questionnaire:
                 self.handle_question(row, 'string')
             elif field_type in ['decimal', 'integer', 'date']:
                 self.handle_question(row, field_type)
+            elif field_type == 'datetime':
+                # XLSForm 'dateTime' maps to the FHIR 'dateTime' item type (camelCase)
+                self.handle_question(row, 'dateTime')
             elif field_type == 'note':
                 self.handle_question(row, 'display')
             elif field_type == 'select_one':
@@ -246,6 +249,10 @@ class Fsh_questionnaire:
                 self.lines.append(f'{self.indent}  * enableWhen[=].answerDecimal = {answer_value}')
             elif trigger_type == 'text':
                 self.lines.append(f'{self.indent}  * enableWhen[=].answerString = "{answer_value}"')
+            elif trigger_type == 'date':
+                self.lines.append(f'{self.indent}  * enableWhen[=].answerDate = "{answer_value}"')
+            elif trigger_type == 'datetime':
+                self.lines.append(f'{self.indent}  * enableWhen[=].answerDateTime = "{answer_value}"')
             else:
                 logging.error(
                     f'{self.data.file_name}: enableWhen on "{row_name}": '

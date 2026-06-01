@@ -46,6 +46,8 @@ This tool supports the conversion of the following XLSForm elements:
 * Select_multiple ⚠️ WARNING: This feature is provided for future support and should be used with caution. Please validate thoroughly before production use.
 * Decimal
 * Integer
+* Date
+* DateTime
 * Begin group
 
 Refer to the mapping table provided for details on how specific DSCN fields correspond to XLSForm elements and their subsequent mapping to FHIR resources.
